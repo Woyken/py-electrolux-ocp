@@ -4,15 +4,16 @@ from datetime import datetime, timedelta
 from json import loads, dumps
 from types import TracebackType
 from typing import Any, Optional, Type
-from urllib.parse import urljoin
 from aiohttp import ClientSession
 
+from .urls import identity_providers_url, token_url
 from .const import (
-    API_KEY_ELECTROLUX, 
-    BASE_URL, 
-    BASE_WEBSOCKET_URL, 
-    CLIENT_ID_ELECTROLUX, 
-    CLIENT_SECRET_ELECTROLUX
+    API_KEY_ELECTROLUX,
+    BASE_URL,
+    BASE_WEBSOCKET_URL,
+    BRAND_ELECTROLUX,
+    CLIENT_ID_ELECTROLUX,
+    CLIENT_SECRET_ELECTROLUX,
 )
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
@@ -21,6 +22,7 @@ from .apiModels import (
     ClientCredTokenResponse,
     UserTokenResponse,
 )
+
 
 def decodeJwt(token: str):
     token_payload = token.split(".")[1]
@@ -39,6 +41,7 @@ class ClientToken:
     def __init__(self, token: ClientCredTokenResponse) -> None:
         self.token = token
         self.expiresAt = datetime.now() + timedelta(seconds=token["expiresIn"])
+
 
 class OneAppApi:
     _regional_websocket_base_url: Optional[str] = None
@@ -69,13 +72,10 @@ class OneAppApi:
         return headers
 
     async def _fetch_login_client_credentials(self, username: str):
-        # https://api.ocp.electrolux.one/one-account-authorization/api/v1/token
-        url = urljoin(
-            await self._get_regional_base_url(username),
-            "one-account-authorization/api/v1/token",
-        )
+        reqParams = token_url(await self._get_regional_base_url(username))
+
         async with await self._get_session().post(
-            url,
+            reqParams.url,
             json={
                 "grantType": "client_credentials",
                 "clientId": CLIENT_ID_ELECTROLUX,
@@ -98,16 +98,13 @@ class OneAppApi:
         return token
 
     async def _fetch_exchange_login_user(self, username: str, idToken: str):
-        # https://api.ocp.electrolux.one/one-account-authorization/api/v1/token
-        url = urljoin(
-            await self._get_regional_base_url(username),
-            "one-account-authorization/api/v1/token",
-        )
+        reqParams = token_url(await self._get_regional_base_url(username))
+
         decodedToken = decodeJwt(idToken)
         headers = self._api_headers_base()
         headers["Origin-Country-Code"] = decodedToken["country"]
         async with await self._get_session().post(
-            url,
+            reqParams.url,
             json={
                 "grantType": "urn:ietf:params:oauth:grant-type:token-exchange",
                 "clientId": CLIENT_ID_ELECTROLUX,
@@ -120,13 +117,10 @@ class OneAppApi:
             return UserToken(token)
 
     async def _fetch_refresh_token_user(self, username: str, token: UserToken):
-        # https://api.ocp.electrolux.one/one-account-authorization/api/v1/token
-        url = urljoin(
-            await self._get_regional_base_url(username),
-            "one-account-authorization/api/v1/token",
-        )
+        reqParams = token_url(await self._get_regional_base_url(username))
+
         async with await self._get_session().post(
-            url,
+            reqParams.url,
             json={
                 "grantType": "refresh_token",
                 "clientId": CLIENT_ID_ELECTROLUX,
@@ -141,17 +135,15 @@ class OneAppApi:
     async def _fetch_identity_providers(
         self, username: str, clientToken: ClientCredTokenResponse
     ):
-        # https://api.ocp.electrolux.one/one-account-user/api/v1/identity-providers?brand=electrolux&email={{username}}
-        url = urljoin(
-            await self._get_regional_base_url(username),
-            "one-account-user/api/v1/identity-providers",
+        reqParams = identity_providers_url(
+            await self._get_regional_base_url(username), BRAND_ELECTROLUX, username
         )
         headers = self._api_headers_base()
         headers[
             "Authorization"
         ] = f'{clientToken["tokenType"]} {clientToken["accessToken"]}'
         async with await self._get_session().get(
-            url, params={"brand": "electrolux", "email": username}, headers=headers
+            reqParams.url, params=reqParams.params, headers=headers
         ) as response:
             data: list[AuthResponse] = await response.json()
             return data
