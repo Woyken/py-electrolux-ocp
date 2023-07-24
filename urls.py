@@ -19,3 +19,10 @@ def identity_providers_url(baseUrl: str, brand: str, username: str):
         urljoin(baseUrl, "one-account-user/api/v1/identity-providers"),
         {"brand": brand, "email": username},
     )
+
+# https://api.ocp.electrolux.one/one-account-user/api/v1/users/current
+# https://api.ocp.electrolux.one/appliance/api/v2/appliances?includeMetadata=true
+# https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}
+# https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/capabilities
+# Get multiple devices by id: POST https://api.ocp.electrolux.one/appliance/api/v2/appliances/info
+# PUT https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/command
