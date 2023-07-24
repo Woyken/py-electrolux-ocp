@@ -215,45 +215,6 @@ class OneAppApi:
         ws_client = await self._get_websocket_client(username)
         await ws_client.disconnect()
 
-    # async def _connect_websocket(
-    #     self, username: str, password: str, appliances: list[str]
-    # ):
-    #     token = await self.get_user_token(username, password)
-    #     headers = self._api_headers_base(token.token)
-    #     headers["appliances"] = dumps(
-    #         [{"applianceId": applianceId} for applianceId in appliances]
-    #     )
-    #     headers["version"] = "2"
-    #     url = await self._get_regional_websocket_base_url(username)
-    #     async with self._get_session().ws_connect(
-    #         url, headers=headers, heartbeat=60 * 5
-    #     ) as ws:
-    #         self._ws_client = ws
-
-    #         async for msg in ws:
-    #             if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
-    #                 break
-
-    #             if msg.type == WSMsgType.ERROR:
-    #                 raise RequestError()
-
-    #             if msg.type == WSMsgType.TEXT:
-    #                 res: WebSocketResponse = msg.json()
-    #                 print(res["Payload"]["Appliances"][0]["Metrics"][0]["Name"])
-    #             elif msg.type == WSMsgType.ERROR:
-    #                 break
-    #     print("no more messages?")
-    #     if self._shutdown_complete_event is not None:
-    #         self._shutdown_complete_event.set()
-    #     else:
-    #         await self._connect_websocket(username, password, appliances)
-
-    # async def _disconnect_websocket(self):
-    #     self._shutdown_complete_event = asyncio.Event()
-    #     await self._ws_client.close()
-    #     await self._shutdown_complete_event.wait()
-    #     pass
-
     async def get_user_token(self, username: str, password: str):
         if self._user_token is not None:
             if self._user_token.expiresAt > datetime.now():
