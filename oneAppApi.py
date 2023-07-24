@@ -7,6 +7,13 @@ from typing import Any, Optional, Type
 from urllib.parse import urljoin
 from aiohttp import ClientSession
 
+from .const import (
+    API_KEY_ELECTROLUX, 
+    BASE_URL, 
+    BASE_WEBSOCKET_URL, 
+    CLIENT_ID_ELECTROLUX, 
+    CLIENT_SECRET_ELECTROLUX
+)
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
 from .apiModels import (
@@ -14,19 +21,6 @@ from .apiModels import (
     ClientCredTokenResponse,
     UserTokenResponse,
 )
-
-API_KEY_ELECTROLUX = "2AMqwEV5MqVhTKrRCyYfVF8gmKrd2rAmp7cUsfky"
-API_KEY_AEG = "PEdfAP7N7sUc95GJPePDU54e2Pybbt6DZtdww7dz"
-CLIENT_SECRET_ELECTROLUX = "8UKrsKD7jH9zvTV7rz5HeCLkit67Mmj68FvRVTlYygwJYy4dW6KF2cVLPKeWzUQUd6KJMtTifFf4NkDnjI7ZLdfnwcPtTSNtYvbP7OzEkmQD9IjhMOf5e1zeAQYtt2yN"
-CLIENT_SECRET_AEG = "G6PZWyneWAZH6kZePRjZAdBbyyIu3qUgDGUDkat7obfU9ByQSgJPNy8xRo99vzcgWExX9N48gMJo3GWaHbMJsohIYOQ54zH2Hid332UnRZdvWOCWvWNnMNLalHoyH7xU"
-CLIENT_ID_ELECTROLUX = "ElxOneApp"
-CLIENT_ID_AEG = "AEGOneApp"
-BRAND_ELECTROLUX = "electrolux"
-BRAND_AEG = "aeg"
-
-BASE_URL = "https://api.ocp.electrolux.one"
-BASE_WEBSOCKET_URL = "wss://ws.ocp.electrolux.one"
-
 
 def decodeJwt(token: str):
     token_payload = token.split(".")[1]
