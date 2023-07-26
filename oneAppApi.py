@@ -47,7 +47,7 @@ class OneAppApi:
     _regional_websocket_base_url: Optional[str] = None
     _gigya_client: Optional[GigyaClient] = None
     _ws_client: Optional[WebSocketClient] = None
-    _client_token: Optional[ClientToken] = None
+    _client_cred_token: Optional[ClientToken] = None
     _user_token: Optional[UserToken] = None
     _identity_providers: Optional[list[AuthResponse]] = None
     _shutdown_complete_event: Optional[asyncio.Event] = None
@@ -87,14 +87,14 @@ class OneAppApi:
             token: ClientCredTokenResponse = await response.json()
             return ClientToken(token)
 
-    async def _get_client_token(self, username: str):
+    async def _get_client_cred_token(self, username: str):
         if (
-            self._client_token is not None
-            and self._client_token.expiresAt > datetime.now()
+            self._client_cred_token is not None
+            and self._client_cred_token.expiresAt > datetime.now()
         ):
-            return self._client_token
+            return self._client_cred_token
         token = await self._fetch_login_client_credentials(username)
-        self._client_token = token
+        self._client_cred_token = token
         return token
 
     async def _fetch_exchange_login_user(self, username: str, idToken: str):
@@ -133,7 +133,7 @@ class OneAppApi:
             return UserToken(newToken)
 
     async def _fetch_identity_providers(
-        self, username: str, clientToken: ClientCredTokenResponse
+        self, username: str, clientCredToken: ClientCredTokenResponse
     ):
         reqParams = identity_providers_url(
             await self._get_regional_base_url(username), BRAND_ELECTROLUX, username
@@ -141,7 +141,7 @@ class OneAppApi:
         headers = self._api_headers_base()
         headers[
             "Authorization"
-        ] = f'{clientToken["tokenType"]} {clientToken["accessToken"]}'
+        ] = f'{clientCredToken["tokenType"]} {clientCredToken["accessToken"]}'
         async with await self._get_session().get(
             reqParams.url, params=reqParams.params, headers=headers
         ) as response:
@@ -151,13 +151,13 @@ class OneAppApi:
     async def _get_identity_providers(self, username: str):
         if self._identity_providers is not None:
             return self._identity_providers
-        token = await self._get_client_token(username)
+        token = await self._get_client_cred_token(username)
         providers = await self._fetch_identity_providers(username, token.token)
         self._identity_providers = providers
         return providers
 
     async def _get_regional_base_url(self, username: str) -> str:
-        if self._client_token is None:
+        if self._client_cred_token is None:
             return BASE_URL
         if self._identity_providers is None:
             return BASE_URL
@@ -165,7 +165,7 @@ class OneAppApi:
         return providers[0]["httpRegionalBaseUrl"]
 
     async def _get_regional_websocket_base_url(self, username: str):
-        if self._client_token is None:
+        if self._client_cred_token is None:
             return BASE_WEBSOCKET_URL
         providers = await self._get_identity_providers(username)
         return providers[0]["webSocketRegionalBaseUrl"]
