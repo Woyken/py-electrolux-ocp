@@ -12,7 +12,6 @@ from .const import (
     BASE_URL,
     BASE_WEBSOCKET_URL,
     BRAND_ELECTROLUX,
-    CLIENT_ID_ELECTROLUX,
     CLIENT_SECRET_ELECTROLUX,
 )
 from .webSocketClient import WebSocketClient
@@ -66,24 +65,21 @@ class OneAppApi:
     def _api_headers_base(self, userToken: Optional[UserTokenResponse] = None):
         headers = {"x-api-key": API_KEY_ELECTROLUX}
         if userToken is not None:
-            headers[
-                "Authorization"
-            ] = f'{userToken["tokenType"]} {userToken["accessToken"]}'
+            headers = {
+                **headers,
+                "Authorization": f'{userToken["tokenType"]} {userToken["accessToken"]}',
+            }
         return headers
 
     async def _fetch_login_client_credentials(self, username: str):
-        reqParams = token_url(await self._get_regional_base_url(username))
+        reqParams = token_url(
+            await self._get_regional_base_url(username),
+            self._api_headers_base(),
+            "client_credentials",
+            clientSecret=CLIENT_SECRET_ELECTROLUX,
+        )
 
-        async with await self._get_session().post(
-            reqParams.url,
-            json={
-                "grantType": "client_credentials",
-                "clientId": CLIENT_ID_ELECTROLUX,
-                "clientSecret": CLIENT_SECRET_ELECTROLUX,
-                "scope": "",
-            },
-            headers=self._api_headers_base(),
-        ) as response:
+        async with await self._get_session().request(**reqParams.__dict__) as response:
             token: ClientCredTokenResponse = await response.json()
             return ClientToken(token)
 
@@ -98,37 +94,30 @@ class OneAppApi:
         return token
 
     async def _fetch_exchange_login_user(self, username: str, idToken: str):
-        reqParams = token_url(await self._get_regional_base_url(username))
-
         decodedToken = decodeJwt(idToken)
-        headers = self._api_headers_base()
-        headers["Origin-Country-Code"] = decodedToken["country"]
-        async with await self._get_session().post(
-            reqParams.url,
-            json={
-                "grantType": "urn:ietf:params:oauth:grant-type:token-exchange",
-                "clientId": CLIENT_ID_ELECTROLUX,
-                "idToken": idToken,
-                "scope": "",
+        reqParams = token_url(
+            await self._get_regional_base_url(username),
+            {
+                **self._api_headers_base(),
+                "Origin-Country-Code": decodedToken["country"],
             },
-            headers=headers,
-        ) as response:
+            "urn:ietf:params:oauth:grant-type:token-exchange",
+            idToken=idToken,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
             token: UserTokenResponse = await response.json()
             return UserToken(token)
 
     async def _fetch_refresh_token_user(self, username: str, token: UserToken):
-        reqParams = token_url(await self._get_regional_base_url(username))
+        reqParams = token_url(
+            await self._get_regional_base_url(username),
+            self._api_headers_base(),
+            "refresh_token",
+            refreshToken=token.token["refreshToken"],
+        )
 
-        async with await self._get_session().post(
-            reqParams.url,
-            json={
-                "grantType": "refresh_token",
-                "clientId": CLIENT_ID_ELECTROLUX,
-                "refreshToken": token.token["refreshToken"],
-                "scope": "",
-            },
-            headers=self._api_headers_base(),
-        ) as response:
+        async with await self._get_session().request(**reqParams.__dict__) as response:
             newToken: UserTokenResponse = await response.json()
             return UserToken(newToken)
 
@@ -136,15 +125,16 @@ class OneAppApi:
         self, username: str, clientCredToken: ClientCredTokenResponse
     ):
         reqParams = identity_providers_url(
-            await self._get_regional_base_url(username), BRAND_ELECTROLUX, username
+            await self._get_regional_base_url(username),
+            {
+                **self._api_headers_base(),
+                "Authorization": f'{clientCredToken["tokenType"]} {clientCredToken["accessToken"]}',
+            },
+            BRAND_ELECTROLUX,
+            username,
         )
-        headers = self._api_headers_base()
-        headers[
-            "Authorization"
-        ] = f'{clientCredToken["tokenType"]} {clientCredToken["accessToken"]}'
-        async with await self._get_session().get(
-            reqParams.url, params=reqParams.params, headers=headers
-        ) as response:
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
             data: list[AuthResponse] = await response.json()
             return data
 
