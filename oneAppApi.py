@@ -3,7 +3,7 @@ from base64 import b64decode
 from datetime import datetime, timedelta
 from json import loads, dumps
 from types import TracebackType
-from typing import Any, Optional, Type
+from typing import Any, Callable, Optional, Type
 from aiohttp import ClientSession
 
 from .urls import identity_providers_url, token_url
@@ -20,6 +20,7 @@ from .apiModels import (
     AuthResponse,
     ClientCredTokenResponse,
     UserTokenResponse,
+    WebSocketResponse,
 )
 
 
@@ -199,6 +200,16 @@ class OneAppApi:
         """Stop websocket connection"""
         ws_client = await self._get_websocket_client(username)
         await ws_client.disconnect()
+
+    async def add_event_handler(self, username: str, handler: Callable[[WebSocketResponse], None]):
+        """Add handler function for websocket events"""
+        ws_client = await self._get_websocket_client(username)
+        ws_client.add_event_handler(handler)
+
+    async def remove_event_handler(self, username: str, handler: Callable[[WebSocketResponse], None]):
+        """Remove handler function for websocket events"""
+        ws_client = await self._get_websocket_client(username)
+        ws_client.remove_event_handler(handler)
 
     async def get_user_token(self, username: str, password: str):
         if self._user_token is not None:

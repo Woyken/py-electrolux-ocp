@@ -21,6 +21,9 @@ class WebSocketClient:
     def add_event_handler(self, handler: Callable[[WebSocketResponse], None]):
         self.event_handlers.append(handler)
 
+    def remove_event_handler(self, handler: Callable[[WebSocketResponse], None]):
+        self.event_handlers.remove(handler)
+
     async def connect(self, headers: dict[str, Any]):
         await self.disconnect()
         await self._connect(headers)
