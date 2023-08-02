@@ -91,12 +91,12 @@ def list_appliances_url(baseUrl: str, headers: dict[str, str], includeMetadata: 
     )
 
 
-def get_appliance_by_id(baseUrl: str, headers: dict[str, str], id: str):
+def get_appliance_by_id(baseUrl: str, headers: dict[str, str], id: str, includeMetadata: bool):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}
     return RequestParams(
         "GET",
         multi_urljoin(baseUrl, "appliance/api/v2/appliances", id),
-        None,
+        {"includeMetadata": "true"} if includeMetadata else None,
         headers,
         None,
     )

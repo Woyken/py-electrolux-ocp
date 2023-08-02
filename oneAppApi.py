@@ -8,6 +8,7 @@ from aiohttp import ClientSession
 
 from .urls import (
     current_user_metadata_url,
+    get_appliance_by_id,
     identity_providers_url,
     list_appliances_url,
     token_url,
@@ -259,6 +260,21 @@ class OneAppApi:
 
         async with await self._get_session().request(**reqParams.__dict__) as response:
             data: list[ApplienceStatusResponse] = await response.json()
+            return data
+
+    async def get_appliance_status(
+        self, username: str, password: str, id: str, includeMetadata: bool
+    ):
+        token = await self.get_user_token(username, password)
+        reqParams = get_appliance_by_id(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+            id,
+            includeMetadata,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            data: ApplienceStatusResponse = await response.json()
             return data
 
     async def close(self) -> None:
