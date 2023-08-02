@@ -1,4 +1,4 @@
-from typing import Any, Optional, TypedDict
+from typing import Any, Dict, Optional, TypedDict
 
 
 class UserTokenResponse(TypedDict):
@@ -68,3 +68,23 @@ class UserMetadataResponse(TypedDict):
     phoneNumbers: list[UserMetadataResponsePhoneNumber]
     enabledMarketingChannels: list[None]
     measurementUnits: UserMetadataResponseMeasurementUnits
+
+
+class ApplienceStatusResponseApplianceData(TypedDict):
+    applianceName: str
+    created: str
+    modelName: str
+
+
+class ApplienceStatusResponseProperties(TypedDict):
+    desired: Dict[str, Any]
+    reported: Dict[str, Any]
+    metadata: Dict[str, Any]
+
+
+class ApplienceStatusResponse(TypedDict):
+    applianceId: str
+    status: str
+    connectionState: str
+    applianceData: ApplienceStatusResponseApplianceData
+    properties: ApplienceStatusResponseProperties

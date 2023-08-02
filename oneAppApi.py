@@ -6,7 +6,12 @@ from types import TracebackType
 from typing import Any, Callable, Optional, Type
 from aiohttp import ClientSession
 
-from .urls import current_user_metadata_url, identity_providers_url, token_url
+from .urls import (
+    current_user_metadata_url,
+    identity_providers_url,
+    list_appliances_url,
+    token_url,
+)
 from .const import (
     API_KEY_ELECTROLUX,
     BASE_URL,
@@ -17,6 +22,7 @@ from .const import (
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
 from .apiModels import (
+    ApplienceStatusResponse,
     AuthResponse,
     ClientCredTokenResponse,
     UserMetadataResponse,
@@ -239,6 +245,20 @@ class OneAppApi:
 
         async with await self._get_session().request(**reqParams.__dict__) as response:
             data: UserMetadataResponse = await response.json()
+            return data
+
+    async def get_appliances_list(
+        self, username: str, password: str, includeMetadata: bool
+    ):
+        token = await self.get_user_token(username, password)
+        reqParams = list_appliances_url(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+            includeMetadata,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            data: list[ApplienceStatusResponse] = await response.json()
             return data
 
     async def close(self) -> None:
