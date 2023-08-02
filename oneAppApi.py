@@ -3,12 +3,13 @@ from base64 import b64decode
 from datetime import datetime, timedelta
 from json import loads, dumps
 from types import TracebackType
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Dict, Optional, Type
 from aiohttp import ClientSession
 
 from .urls import (
     current_user_metadata_url,
     get_appliance_by_id,
+    get_appliance_capabilities,
     identity_providers_url,
     list_appliances_url,
     token_url,
@@ -275,6 +276,20 @@ class OneAppApi:
 
         async with await self._get_session().request(**reqParams.__dict__) as response:
             data: ApplienceStatusResponse = await response.json()
+            return data
+
+    async def get_appliance_capabilities(
+        self, username: str, password: str, id: str, includeMetadata: bool
+    ):
+        token = await self.get_user_token(username, password)
+        reqParams = get_appliance_capabilities(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+            id,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            data: Dict[str, Any] = await response.json()
             return data
 
     async def close(self) -> None:
