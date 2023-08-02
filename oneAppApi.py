@@ -6,7 +6,7 @@ from types import TracebackType
 from typing import Any, Callable, Optional, Type
 from aiohttp import ClientSession
 
-from .urls import identity_providers_url, token_url
+from .urls import current_user_metadata_url, identity_providers_url, token_url
 from .const import (
     API_KEY_ELECTROLUX,
     BASE_URL,
@@ -19,6 +19,7 @@ from .gigyaClient import GigyaClient
 from .apiModels import (
     AuthResponse,
     ClientCredTokenResponse,
+    UserMetadataResponse,
     UserTokenResponse,
     WebSocketResponse,
 )
@@ -228,6 +229,17 @@ class OneAppApi:
         token = await self._fetch_exchange_login_user(username, idToken["id_token"])
         self._user_token = token
         return token
+
+    async def get_user_metadata(self, username: str, password: str):
+        token = await self.get_user_token(username, password)
+        reqParams = current_user_metadata_url(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            data: UserMetadataResponse = await response.json()
+            return data
 
     async def close(self) -> None:
         if self._client_session and self._close_session:

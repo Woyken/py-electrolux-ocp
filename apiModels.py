@@ -1,4 +1,4 @@
-from typing import Any, TypedDict
+from typing import Any, Optional, TypedDict
 
 
 class UserTokenResponse(TypedDict):
@@ -45,3 +45,26 @@ class WebSocketResponse(TypedDict):
     Api: str
     Version: str
     Payload: WebSocketResponsePayload
+
+
+class UserMetadataResponsePhoneNumber(TypedDict):
+    type: str
+    number: Optional[str]
+
+
+class UserMetadataResponseMeasurementUnits(TypedDict):
+    distanceMeasurementUnit: str
+    tempMeasurementUnit: str
+    surfaceMeasurementUnit: str
+    weightMeasurementUnit: str
+    volumeMeasurementUnit: str
+
+
+class UserMetadataResponse(TypedDict):
+    firstName: str
+    lastName: str
+    countryCode: str
+    locale: str
+    phoneNumbers: list[UserMetadataResponsePhoneNumber]
+    enabledMarketingChannels: list[None]
+    measurementUnits: UserMetadataResponseMeasurementUnits
