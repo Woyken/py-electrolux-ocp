@@ -72,6 +72,7 @@ class OneAppApi:
         return headers
 
     async def _fetch_login_client_credentials(self, username: str):
+        """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         reqParams = token_url(
             await self._get_regional_base_url(username),
             self._api_headers_base(),
@@ -183,6 +184,7 @@ class OneAppApi:
     async def connect_websocket(
         self, username: str, password: str, appliances: list[str]
     ):
+        """Start websocket connection, listen to events"""
         token = await self.get_user_token(username, password)
         headers = self._api_headers_base(token.token)
         headers["appliances"] = dumps(
@@ -194,6 +196,7 @@ class OneAppApi:
         await ws_client.connect(headers)
 
     async def disconnect_websocket(self, username: str):
+        """Stop websocket connection"""
         ws_client = await self._get_websocket_client(username)
         await ws_client.disconnect()
 
