@@ -88,3 +88,15 @@ class ApplienceStatusResponse(TypedDict):
     connectionState: str
     applianceData: ApplienceStatusResponseApplianceData
     properties: ApplienceStatusResponseProperties
+
+
+class ApplianceInfoResponse(TypedDict):
+    pnc: str
+    brand: str
+    market: str
+    productArea: str
+    deviceType: str
+    project: str
+    model: str
+    variant: str
+    colour: str

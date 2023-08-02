@@ -10,6 +10,7 @@ from .urls import (
     current_user_metadata_url,
     get_appliance_by_id,
     get_appliance_capabilities,
+    get_appliances_info_by_ids,
     identity_providers_url,
     list_appliances_url,
     token_url,
@@ -24,6 +25,7 @@ from .const import (
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
 from .apiModels import (
+    ApplianceInfoResponse,
     ApplienceStatusResponse,
     AuthResponse,
     ClientCredTokenResponse,
@@ -278,9 +280,7 @@ class OneAppApi:
             data: ApplienceStatusResponse = await response.json()
             return data
 
-    async def get_appliance_capabilities(
-        self, username: str, password: str, id: str, includeMetadata: bool
-    ):
+    async def get_appliance_capabilities(self, username: str, password: str, id: str):
         token = await self.get_user_token(username, password)
         reqParams = get_appliance_capabilities(
             await self._get_base_url(username),
@@ -290,6 +290,18 @@ class OneAppApi:
 
         async with await self._get_session().request(**reqParams.__dict__) as response:
             data: Dict[str, Any] = await response.json()
+            return data
+
+    async def get_appliances_info(self, username: str, password: str, ids: list[str]):
+        token = await self.get_user_token(username, password)
+        reqParams = get_appliances_info_by_ids(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+            ids,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            data: list[ApplianceInfoResponse] = await response.json()
             return data
 
     async def close(self) -> None:
