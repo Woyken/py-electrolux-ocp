@@ -74,7 +74,7 @@ class OneAppApi:
     async def _fetch_login_client_credentials(self, username: str):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         reqParams = token_url(
-            await self._get_regional_base_url(username),
+            await self._get_base_url(username),
             self._api_headers_base(),
             "client_credentials",
             clientSecret=CLIENT_SECRET_ELECTROLUX,
@@ -97,7 +97,7 @@ class OneAppApi:
     async def _fetch_exchange_login_user(self, username: str, idToken: str):
         decodedToken = decodeJwt(idToken)
         reqParams = token_url(
-            await self._get_regional_base_url(username),
+            await self._get_base_url(username),
             {
                 **self._api_headers_base(),
                 "Origin-Country-Code": decodedToken["country"],
@@ -112,7 +112,7 @@ class OneAppApi:
 
     async def _fetch_refresh_token_user(self, username: str, token: UserToken):
         reqParams = token_url(
-            await self._get_regional_base_url(username),
+            await self._get_base_url(username),
             self._api_headers_base(),
             "refresh_token",
             refreshToken=token.token["refreshToken"],
@@ -126,7 +126,7 @@ class OneAppApi:
         self, username: str, clientCredToken: ClientCredTokenResponse
     ):
         reqParams = identity_providers_url(
-            await self._get_regional_base_url(username),
+            await self._get_base_url(username),
             {
                 **self._api_headers_base(),
                 "Authorization": f'{clientCredToken["tokenType"]} {clientCredToken["accessToken"]}',
@@ -147,7 +147,7 @@ class OneAppApi:
         self._identity_providers = providers
         return providers
 
-    async def _get_regional_base_url(self, username: str) -> str:
+    async def _get_base_url(self, username: str) -> str:
         if self._client_cred_token is None:
             return BASE_URL
         if self._identity_providers is None:
