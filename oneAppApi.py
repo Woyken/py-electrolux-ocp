@@ -201,12 +201,16 @@ class OneAppApi:
         ws_client = await self._get_websocket_client(username)
         await ws_client.disconnect()
 
-    async def add_event_handler(self, username: str, handler: Callable[[WebSocketResponse], None]):
+    async def add_event_handler(
+        self, username: str, handler: Callable[[WebSocketResponse], None]
+    ):
         """Add handler function for websocket events"""
         ws_client = await self._get_websocket_client(username)
         ws_client.add_event_handler(handler)
 
-    async def remove_event_handler(self, username: str, handler: Callable[[WebSocketResponse], None]):
+    async def remove_event_handler(
+        self, username: str, handler: Callable[[WebSocketResponse], None]
+    ):
         """Remove handler function for websocket events"""
         ws_client = await self._get_websocket_client(username)
         ws_client.remove_event_handler(handler)
