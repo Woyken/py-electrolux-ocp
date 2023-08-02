@@ -7,6 +7,7 @@ from typing import Any, Callable, Dict, Optional, Type
 from aiohttp import ClientSession
 
 from .urls import (
+    appliance_command,
     current_user_metadata_url,
     get_appliance_by_id,
     get_appliance_capabilities,
@@ -303,6 +304,21 @@ class OneAppApi:
         async with await self._get_session().request(**reqParams.__dict__) as response:
             data: list[ApplianceInfoResponse] = await response.json()
             return data
+
+    async def execute_appliance_command(
+        self, username: str, password: str, id: str, commandData: Dict[str, Any]
+    ):
+        token = await self.get_user_token(username, password)
+        reqParams = appliance_command(
+            await self._get_base_url(username),
+            self._api_headers_base(token.token),
+            id,
+            commandData,
+        )
+
+        async with await self._get_session().request(**reqParams.__dict__) as response:
+            await response.wait_for_close()
+            return
 
     async def close(self) -> None:
         if self._client_session and self._close_session:

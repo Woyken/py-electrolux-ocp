@@ -1,4 +1,4 @@
-from typing import Any, Mapping, Optional, Union
+from typing import Any, Dict, Mapping, Optional, Union
 from urllib.parse import quote_plus, urljoin
 from multidict import CIMultiDict, CIMultiDictProxy, istr
 
@@ -91,7 +91,9 @@ def list_appliances_url(baseUrl: str, headers: dict[str, str], includeMetadata: 
     )
 
 
-def get_appliance_by_id(baseUrl: str, headers: dict[str, str], id: str, includeMetadata: bool):
+def get_appliance_by_id(
+    baseUrl: str, headers: dict[str, str], id: str, includeMetadata: bool
+):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}
     return RequestParams(
         "GET",
@@ -126,7 +128,9 @@ def get_appliances_info_by_ids(baseUrl: str, headers: dict[str, str], ids: list[
     )
 
 
-def appliance_command(baseUrl: str, headers: dict[str, str], id: str, commandData: Any):
+def appliance_command(
+    baseUrl: str, headers: dict[str, str], id: str, commandData: Dict[str, Any]
+):
     # PUT https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/command
     return RequestParams(
         "PUT",
