@@ -161,6 +161,7 @@ class OneAppApi:
         return result
 
     async def close(self) -> None:
+        """Dispose session and dependencies"""
         if self._gigya_client:
             await self._gigya_client.close()
         if self._ws_client:
