@@ -48,24 +48,15 @@ class WebSocketClient:
                     heartbeat=self.heartbeat_interval,
                 ) as ws:
                     self.websocket = ws
-                    print("WebSocket connection established")
                     # Block until connection closes
                     await self.handle_messages(ws)
             except ClientError:
-                print(
-                    "WebSocket connection failed. Retrying in {} seconds.".format(
-                        self.retry_interval
-                    )
-                )
+                # Connection dropped, retry in couple of seconds
                 await asyncio.sleep(self.retry_interval)
 
     async def handle_messages(self, ws: ClientWebSocketResponse):
         try:
             async for msg in ws:
-                print("websocket message received, type", str(msg.type))
-                if isinstance(msg.data, str):
-                    print("string message received", msg.data)
-
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
                     break
                 if msg.type == WSMsgType.ERROR:
@@ -73,12 +64,10 @@ class WebSocketClient:
 
                 if msg.type == WSMsgType.TEXT:
                     parsed_message: WebSocketResponse = msg.json()
-                    # print(parsed_message["Payload"]["Appliances"][0]["Metrics"][0]["Name"])
                     for handler in self.event_handlers:
                         self.event_loop.call_soon(handler, parsed_message)
         finally:
             await ws.close()
-            print("WebSocket connection closed")
 
     async def disconnect(self):
         self.retry = False
