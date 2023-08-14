@@ -34,11 +34,17 @@ class UserToken:
         self.token = token
         self.expiresAt = datetime.now() + timedelta(seconds=token["expiresIn"])
 
+    def should_renew(self):
+        return self.expiresAt < (datetime.now() - timedelta(minutes=2))
+
 
 class ClientToken:
     def __init__(self, token: ClientCredTokenResponse) -> None:
         self.token = token
         self.expiresAt = datetime.now() + timedelta(seconds=token["expiresIn"])
+
+    def should_renew(self):
+        return self.expiresAt < (datetime.now() - timedelta(minutes=2))
 
 
 def decodeJwt(token: str):

@@ -55,7 +55,7 @@ class OneAppApi:
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         if (
             self._client_cred_token is not None
-            and self._client_cred_token.expiresAt > datetime.now()
+            and not self._client_cred_token.should_renew()
         ):
             return self._client_cred_token
 
@@ -157,7 +157,7 @@ class OneAppApi:
 
     async def get_user_token(self, username: str, password: str):
         if self._user_token is not None:
-            if self._user_token.expiresAt > datetime.now():
+            if not self._user_token.should_renew():
                 return self._user_token
             token = await self._fetch_refresh_token_user(username, self._user_token)
             self._user_token = token
