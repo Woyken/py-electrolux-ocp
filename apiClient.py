@@ -6,11 +6,11 @@ from typing import Any, Dict, Optional, Type
 from aiohttp import ClientSession
 
 from .urls import (
-    appliance_command,
+    appliance_command_url,
     current_user_metadata_url,
-    get_appliance_by_id,
-    get_appliance_capabilities,
-    get_appliances_info_by_ids,
+    get_appliance_by_id_url,
+    get_appliance_capabilities_url,
+    get_appliances_info_by_ids_url,
     identity_providers_url,
     list_appliances_url,
     token_url,
@@ -153,7 +153,7 @@ class OneAppApiClient:
             return data
 
     async def get_appliance_status(self, baseUrl: str, token: str, id, includeMetadata):
-        reqParams = get_appliance_by_id(
+        reqParams = get_appliance_by_id_url(
             baseUrl,
             self._api_headers_base(token),
             id,
@@ -165,7 +165,7 @@ class OneAppApiClient:
             return data
 
     async def get_appliance_capabilities(self, baseUrl: str, token: str, id: str):
-        reqParams = get_appliance_capabilities(
+        reqParams = get_appliance_capabilities_url(
             baseUrl, self._api_headers_base(token), id
         )
 
@@ -174,7 +174,7 @@ class OneAppApiClient:
             return data
 
     async def get_appliances_info(self, baseUrl: str, token: str, ids: list[str]):
-        reqParams = get_appliances_info_by_ids(
+        reqParams = get_appliances_info_by_ids_url(
             baseUrl,
             self._api_headers_base(token),
             ids,
@@ -187,7 +187,7 @@ class OneAppApiClient:
     async def execute_appliance_command(
         self, baseUrl: str, token: str, id: str, commandData: Dict[str, Any]
     ):
-        reqParams = appliance_command(
+        reqParams = appliance_command_url(
             baseUrl,
             self._api_headers_base(token),
             id,

@@ -91,7 +91,7 @@ def list_appliances_url(baseUrl: str, headers: dict[str, str], includeMetadata: 
     )
 
 
-def get_appliance_by_id(
+def get_appliance_by_id_url(
     baseUrl: str, headers: dict[str, str], id: str, includeMetadata: bool
 ):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}
@@ -104,7 +104,7 @@ def get_appliance_by_id(
     )
 
 
-def get_appliance_capabilities(baseUrl: str, headers: dict[str, str], id: str):
+def get_appliance_capabilities_url(baseUrl: str, headers: dict[str, str], id: str):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/capabilities
     return RequestParams(
         "GET",
@@ -115,7 +115,7 @@ def get_appliance_capabilities(baseUrl: str, headers: dict[str, str], id: str):
     )
 
 
-def get_appliances_info_by_ids(baseUrl: str, headers: dict[str, str], ids: list[str]):
+def get_appliances_info_by_ids_url(baseUrl: str, headers: dict[str, str], ids: list[str]):
     # POST https://api.ocp.electrolux.one/appliance/api/v2/appliances/info
     return RequestParams(
         "POST",
@@ -128,7 +128,7 @@ def get_appliances_info_by_ids(baseUrl: str, headers: dict[str, str], ids: list[
     )
 
 
-def appliance_command(
+def appliance_command_url(
     baseUrl: str, headers: dict[str, str], id: str, commandData: Dict[str, Any]
 ):
     # PUT https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/command
