@@ -43,21 +43,6 @@ class OneAppApi:
         self._api_client = OneAppApiClient(client_session)
         pass
 
-    def _get_session(self):
-        if self._client_session is None:
-            self._client_session = ClientSession()
-            self._close_session = True
-        return self._client_session
-
-    def _api_headers_base(self, userToken: Optional[UserTokenResponse] = None):
-        headers = {"x-api-key": API_KEY_ELECTROLUX}
-        if userToken is not None:
-            headers = {
-                **headers,
-                "Authorization": f'{userToken["tokenType"]} {userToken["accessToken"]}',
-            }
-        return headers
-
     async def get_client_cred_token(self):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         if (
@@ -70,56 +55,6 @@ class OneAppApi:
         token = await self._api_client.login_client_credentials(baseUrl)
         self._client_cred_token = token
         return token
-
-    async def _get_formatted_client_cred_token(self):
-        clientCredToken = await self.get_client_cred_token()
-        return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
-
-    async def _get_identity_providers(self):
-        if self._identity_providers is not None:
-            return self._identity_providers
-
-        baseUrl = await self._get_base_url()
-        token = await self._get_formatted_client_cred_token()
-
-        providers = await self._api_client.get_identity_providers(
-            baseUrl, token, self._username
-        )
-        self._identity_providers = providers
-        return providers
-
-    async def _get_base_url(self) -> str:
-        if self._client_cred_token is None:
-            return BASE_URL
-        if self._identity_providers is None:
-            return BASE_URL
-        providers = await self._get_identity_providers()
-        return providers[0]["httpRegionalBaseUrl"]
-
-    async def _get_regional_websocket_base_url(self):
-        if self._client_cred_token is None:
-            return BASE_WEBSOCKET_URL
-        providers = await self._get_identity_providers()
-        return providers[0]["webSocketRegionalBaseUrl"]
-
-    async def _get_gigya_client(self):
-        if self._gigya_client is not None:
-            return self._gigya_client
-        data = await self._get_identity_providers()
-        gigyaClient = GigyaClient(
-            self._get_session(), data[0]["domain"], data[0]["apiKey"]
-        )
-        self._gigya_client = gigyaClient
-        return gigyaClient
-
-    async def _get_websocket_client(self):
-        if self._ws_client is not None:
-            return self._ws_client
-
-        url = await self._get_regional_websocket_base_url()
-        ws_client = WebSocketClient(self._get_session(), url)
-        self._ws_client = ws_client
-        return ws_client
 
     async def connect_websocket(self, appliances: list[str]):
         """Start websocket connection, listen to events"""
@@ -171,10 +106,6 @@ class OneAppApi:
         token = await self._api_client.exchange_login_user(baseUrl, idToken["id_token"])
         self._user_token = token
         return token
-
-    async def _get_formatted_user_token(self):
-        token = await self.get_user_token()
-        return f'{token.token["tokenType"]} {token.token["accessToken"]}'
 
     async def get_user_metadata(self):
         """Get details about user and preferences"""
@@ -236,6 +167,75 @@ class OneAppApi:
             await self._gigya_client.close()
         if self._ws_client:
             await self._ws_client.close()
+
+    async def _get_formatted_client_cred_token(self):
+        clientCredToken = await self.get_client_cred_token()
+        return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
+
+    def _get_session(self):
+        if self._client_session is None:
+            self._client_session = ClientSession()
+            self._close_session = True
+        return self._client_session
+
+    def _api_headers_base(self, userToken: Optional[UserTokenResponse] = None):
+        headers = {"x-api-key": API_KEY_ELECTROLUX}
+        if userToken is not None:
+            headers = {
+                **headers,
+                "Authorization": f'{userToken["tokenType"]} {userToken["accessToken"]}',
+            }
+        return headers
+
+    async def _get_identity_providers(self):
+        if self._identity_providers is not None:
+            return self._identity_providers
+
+        baseUrl = await self._get_base_url()
+        token = await self._get_formatted_client_cred_token()
+
+        providers = await self._api_client.get_identity_providers(
+            baseUrl, token, self._username
+        )
+        self._identity_providers = providers
+        return providers
+
+    async def _get_base_url(self) -> str:
+        if self._client_cred_token is None:
+            return BASE_URL
+        if self._identity_providers is None:
+            return BASE_URL
+        providers = await self._get_identity_providers()
+        return providers[0]["httpRegionalBaseUrl"]
+
+    async def _get_regional_websocket_base_url(self):
+        if self._client_cred_token is None:
+            return BASE_WEBSOCKET_URL
+        providers = await self._get_identity_providers()
+        return providers[0]["webSocketRegionalBaseUrl"]
+
+    async def _get_gigya_client(self):
+        if self._gigya_client is not None:
+            return self._gigya_client
+        data = await self._get_identity_providers()
+        gigyaClient = GigyaClient(
+            self._get_session(), data[0]["domain"], data[0]["apiKey"]
+        )
+        self._gigya_client = gigyaClient
+        return gigyaClient
+
+    async def _get_websocket_client(self):
+        if self._ws_client is not None:
+            return self._ws_client
+
+        url = await self._get_regional_websocket_base_url()
+        ws_client = WebSocketClient(self._get_session(), url)
+        self._ws_client = ws_client
+        return ws_client
+
+    async def _get_formatted_user_token(self):
+        token = await self.get_user_token()
+        return f'{token.token["tokenType"]} {token.token["accessToken"]}'
 
     async def __aenter__(self):
         return self
