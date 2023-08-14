@@ -68,24 +68,14 @@ class OneAppApi:
         clientCredToken = await self._get_client_cred_token(username)
         return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
 
-    async def _fetch_refresh_token_user(self, username: str, token: UserToken):
-        baseUrl = await self._get_base_url(username)
-        result = await self._api_client.refresh_token_user(
-            baseUrl, token.token["refreshToken"]
-        )
-        return result
-
-    async def _fetch_identity_providers(self, username: str):
-        baseUrl = await self._get_base_url(username)
-        token = await self.get_formatted_client_cred_token(username)
-
-        result = await self._api_client.get_identity_providers(baseUrl, token, username)
-        return result
-
     async def _get_identity_providers(self, username: str):
         if self._identity_providers is not None:
             return self._identity_providers
-        providers = await self._fetch_identity_providers(username)
+
+        baseUrl = await self._get_base_url(username)
+        token = await self.get_formatted_client_cred_token(username)
+
+        providers = await self._api_client.get_identity_providers(baseUrl, token, username)
         self._identity_providers = providers
         return providers
 
@@ -159,7 +149,10 @@ class OneAppApi:
         if self._user_token is not None:
             if not self._user_token.should_renew():
                 return self._user_token
-            token = await self._fetch_refresh_token_user(username, self._user_token)
+
+            baseUrl = await self._get_base_url(username)
+
+            token = await self._api_client.refresh_token_user(baseUrl, self._user_token.token["refreshToken"])
             self._user_token = token
             return token
 
