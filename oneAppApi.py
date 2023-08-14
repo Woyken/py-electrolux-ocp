@@ -161,12 +161,15 @@ class OneAppApi:
         return result
 
     async def close(self) -> None:
-        if self._client_session and self._close_session:
-            await self._client_session.close()
         if self._gigya_client:
             await self._gigya_client.close()
         if self._ws_client:
             await self._ws_client.close()
+
+        await self._api_client.close()
+
+        if self._client_session and self._close_session:
+            await self._client_session.close()
 
     async def _get_formatted_client_cred_token(self):
         clientCredToken = await self.get_client_cred_token()

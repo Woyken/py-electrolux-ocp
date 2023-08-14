@@ -1,7 +1,8 @@
 from base64 import b64decode
 from datetime import datetime, timedelta
 from json import loads
-from typing import Any, Dict, Optional
+from types import TracebackType
+from typing import Any, Dict, Optional, Type
 from aiohttp import ClientSession
 
 from .urls import (
@@ -196,3 +197,18 @@ class OneAppApiClient:
         async with await self._get_session().request(**reqParams.__dict__) as response:
             await response.wait_for_close()
             return
+
+    async def close(self) -> None:
+        if self._client_session and self._close_session:
+            await self._client_session.close()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> Optional[bool]:
+        await self.close()
