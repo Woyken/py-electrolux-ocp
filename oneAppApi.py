@@ -1,24 +1,14 @@
 import asyncio
-from datetime import datetime
 from json import dumps
 from types import TracebackType
 from typing import Any, Callable, Dict, Optional, Type
 from aiohttp import ClientSession
 
 from .apiClient import ClientToken, OneAppApiClient, UserToken
-
-from .const import (
-    API_KEY_ELECTROLUX,
-    BASE_URL,
-    BASE_WEBSOCKET_URL,
-)
+from .const import BASE_URL, BASE_WEBSOCKET_URL
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
-from .apiModels import (
-    AuthResponse,
-    UserTokenResponse,
-    WebSocketResponse,
-)
+from .apiModels import AuthResponse, WebSocketResponse
 
 
 class OneAppApi:
@@ -215,7 +205,9 @@ class OneAppApi:
         if self._gigya_client is not None:
             return self._gigya_client
         data = await self._get_identity_providers()
-        gigyaClient = GigyaClient(data[0]["domain"], data[0]["apiKey"], self._get_session())
+        gigyaClient = GigyaClient(
+            data[0]["domain"], data[0]["apiKey"], self._get_session()
+        )
         self._gigya_client = gigyaClient
         return gigyaClient
 

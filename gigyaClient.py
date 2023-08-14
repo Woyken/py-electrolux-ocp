@@ -2,7 +2,7 @@ import random
 import time
 from types import TracebackType
 from typing import Optional, Type
-from urllib.parse import urljoin, urlparse, quote_plus
+from urllib.parse import urlparse, quote_plus
 from aiohttp import ClientSession
 from json import dumps as jsonstringify
 import hmac
