@@ -111,7 +111,7 @@ def getOAuth1Signature(
 
 class GigyaClient:
     def __init__(
-        self, client_session: ClientSession, domain: str, api_key: str
+        self, domain: str, api_key: str, client_session: Optional[ClientSession] = None
     ) -> None:
         self._client_session = client_session
         self._close_session = False
@@ -122,6 +122,7 @@ class GigyaClient:
         if self._client_session is None:
             self._client_session = ClientSession()
             self._close_session = True
+        return self._client_session
 
     def _generate_nonce(self):
         return f"{current_milli_time()}_{random.randrange(1000000000, 10000000000)}"
@@ -129,7 +130,7 @@ class GigyaClient:
     async def get_ids(self):
         # https://socialize.eu1.gigya.com/socialize.getIDs
         url = f"https://socialize.{self._domain}/socialize.getIDs"
-        async with await self._client_session.get(
+        async with await self._get_session().get(
             url,
             data={
                 "apiKey": self._api_key,
@@ -146,7 +147,7 @@ class GigyaClient:
     async def login_session(self, username: str, password: str, gmid: str, ucid: str):
         # https://accounts.eu1.gigya.com/accounts.login
         url = f"https://accounts.{self._domain}/accounts.login"
-        async with await self._client_session.post(
+        async with await self._get_session().post(
             url,
             data={
                 "apiKey": self._api_key,
@@ -187,7 +188,7 @@ class GigyaClient:
             sessionSecret, "POST", url, True, dataParams
         )
 
-        async with await self._client_session.post(url, data=dataParams) as response:
+        async with await self._get_session().post(url, data=dataParams) as response:
             data: GetJWTResponse = await response.json(content_type=None)
             return data
 

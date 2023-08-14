@@ -58,12 +58,14 @@ class OneAppApi:
 
     async def connect_websocket(self, appliances: list[str]):
         """Start websocket connection, listen to events"""
-        token = await self.get_user_token()
-        headers = self._api_headers_base(token.token)
-        headers["appliances"] = dumps(
-            [{"applianceId": applianceId} for applianceId in appliances]
-        )
-        headers["version"] = "2"
+        token = await self._get_formatted_user_token()
+        headers = {
+            "Authorization": token,
+            "appliances": dumps(
+                [{"applianceId": applianceId} for applianceId in appliances]
+            ),
+            "version": "2",
+        }
         ws_client = await self._get_websocket_client()
 
         await ws_client.connect(headers)
@@ -182,15 +184,6 @@ class OneAppApi:
             self._close_session = True
         return self._client_session
 
-    def _api_headers_base(self, userToken: Optional[UserTokenResponse] = None):
-        headers = {"x-api-key": API_KEY_ELECTROLUX}
-        if userToken is not None:
-            headers = {
-                **headers,
-                "Authorization": f'{userToken["tokenType"]} {userToken["accessToken"]}',
-            }
-        return headers
-
     async def _get_identity_providers(self):
         if self._identity_providers is not None:
             return self._identity_providers
@@ -222,9 +215,7 @@ class OneAppApi:
         if self._gigya_client is not None:
             return self._gigya_client
         data = await self._get_identity_providers()
-        gigyaClient = GigyaClient(
-            self._get_session(), data[0]["domain"], data[0]["apiKey"]
-        )
+        gigyaClient = GigyaClient(data[0]["domain"], data[0]["apiKey"], self._get_session())
         self._gigya_client = gigyaClient
         return gigyaClient
 
@@ -233,7 +224,7 @@ class OneAppApi:
             return self._ws_client
 
         url = await self._get_regional_websocket_base_url()
-        ws_client = WebSocketClient(self._get_session(), url)
+        ws_client = WebSocketClient(url, self._get_session())
         self._ws_client = ws_client
         return ws_client
 

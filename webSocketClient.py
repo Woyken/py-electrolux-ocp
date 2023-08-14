@@ -8,8 +8,9 @@ from pyelectroluxconnect.Session import RequestError
 from .apiModels import WebSocketResponse
 
 class WebSocketClient:
-    def __init__(self, clientSession: ClientSession, url: str):
+    def __init__(self, url: str, clientSession: Optional[ClientSession] = None):
         self._client_session = clientSession
+        self._close_session = False
         self._url = url
         self.websocket = None
         self.retry = False
@@ -17,6 +18,12 @@ class WebSocketClient:
         self.heartbeat_interval = 5 * 60  # 5 minutes
         self.event_loop = asyncio.get_event_loop()
         self.event_handlers: list[Callable[[WebSocketResponse], None]] = []
+
+    def _get_session(self):
+        if self._client_session is None:
+            self._client_session = ClientSession()
+            self._close_session = True
+        return self._client_session
 
     def add_event_handler(self, handler: Callable[[WebSocketResponse], None]):
         self.event_handlers.append(handler)
@@ -34,7 +41,7 @@ class WebSocketClient:
         self.retry = True
         while self.retry:
             try:
-                async with self._client_session.ws_connect(
+                async with self._get_session().ws_connect(
                     self._url,
                     headers=headers,
                     # Connection will be broken after 10 minutes of inactivity, keep it alive with heartbeat messages
@@ -81,6 +88,8 @@ class WebSocketClient:
     async def close(self) -> None:
         if self.websocket is not None:
             await self.websocket.close()
+        if self._client_session and self._close_session:
+            await self._client_session.close()
 
     async def __aenter__(self):
         return self
