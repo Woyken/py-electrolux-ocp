@@ -58,7 +58,7 @@ class OneAppApi:
             }
         return headers
 
-    async def _get_client_cred_token(self):
+    async def get_client_cred_token(self):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         if (
             self._client_cred_token is not None
@@ -71,8 +71,8 @@ class OneAppApi:
         self._client_cred_token = token
         return token
 
-    async def get_formatted_client_cred_token(self):
-        clientCredToken = await self._get_client_cred_token()
+    async def _get_formatted_client_cred_token(self):
+        clientCredToken = await self.get_client_cred_token()
         return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
 
     async def _get_identity_providers(self):
@@ -80,7 +80,7 @@ class OneAppApi:
             return self._identity_providers
 
         baseUrl = await self._get_base_url()
-        token = await self.get_formatted_client_cred_token()
+        token = await self._get_formatted_client_cred_token()
 
         providers = await self._api_client.get_identity_providers(
             baseUrl, token, self._username
@@ -149,6 +149,10 @@ class OneAppApi:
         ws_client.remove_event_handler(handler)
 
     async def get_user_token(self):
+        """
+        Login with user credentials.
+        If already logged in and token expired, login using refresh token.
+        """
         if self._user_token is not None:
             if not self._user_token.should_renew():
                 return self._user_token
@@ -168,19 +172,21 @@ class OneAppApi:
         self._user_token = token
         return token
 
-    async def get_formatted_user_token(self):
+    async def _get_formatted_user_token(self):
         token = await self.get_user_token()
         return f'{token.token["tokenType"]} {token.token["accessToken"]}'
 
     async def get_user_metadata(self):
-        token = await self.get_formatted_user_token()
+        """Get details about user and preferences"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
         result = await self._api_client.get_user_metadata(baseUrl, token)
         return result
 
     async def get_appliances_list(self, includeMetadata: bool):
-        token = await self.get_formatted_user_token()
+        """Get list of all user's appliances"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
         result = await self._api_client.get_appliances_list(
@@ -189,7 +195,8 @@ class OneAppApi:
         return result
 
     async def get_appliance_status(self, id: str, includeMetadata: bool):
-        token = await self.get_formatted_user_token()
+        """Get current status of appliance by id"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
         result = await self._api_client.get_appliance_status(
@@ -198,21 +205,24 @@ class OneAppApi:
         return result
 
     async def get_appliance_capabilities(self, id: str):
-        token = await self.get_formatted_user_token()
+        """Get appliance capabilities"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
         result = await self._api_client.get_appliance_capabilities(baseUrl, token, id)
         return result
 
     async def get_appliances_info(self, ids: list[str]):
-        token = await self.get_formatted_user_token()
+        """Get multiple appliances info"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
         result = await self._api_client.get_appliances_info(baseUrl, token, ids)
         return result
 
     async def execute_appliance_command(self, id: str, commandData: Dict[str, Any]):
-        token = await self.get_formatted_user_token()
+        """Execute command for appliance"""
+        token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
         result = await self._api_client.execute_appliance_command(
             baseUrl, token, id, commandData
