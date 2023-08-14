@@ -51,31 +51,22 @@ class OneAppApi:
             }
         return headers
 
-    async def _fetch_login_client_credentials(self, username: str):
-        """Login using client credentials of the mobile application, used for fetching identity providers urls"""
-        baseUrl = await self._get_base_url(username)
-
-        result = await self._api_client.login_client_credentials(baseUrl)
-        return result
-
     async def _get_client_cred_token(self, username: str):
+        """Login using client credentials of the mobile application, used for fetching identity providers urls"""
         if (
             self._client_cred_token is not None
             and self._client_cred_token.expiresAt > datetime.now()
         ):
             return self._client_cred_token
-        token = await self._fetch_login_client_credentials(username)
+
+        baseUrl = await self._get_base_url(username)
+        token = await self._api_client.login_client_credentials(baseUrl)
         self._client_cred_token = token
         return token
 
     async def get_formatted_client_cred_token(self, username: str):
         clientCredToken = await self._get_client_cred_token(username)
         return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
-
-    async def _fetch_exchange_login_user(self, username: str, idToken: str):
-        baseUrl = await self._get_base_url(username)
-        result = await self._api_client.exchange_login_user(baseUrl, idToken)
-        return result
 
     async def _fetch_refresh_token_user(self, username: str, token: UserToken):
         baseUrl = await self._get_base_url(username)
@@ -174,7 +165,8 @@ class OneAppApi:
 
         gigyaClient = await self._get_gigya_client(username)
         idToken = await gigyaClient.login_user(username, password)
-        token = await self._fetch_exchange_login_user(username, idToken["id_token"])
+        baseUrl = await self._get_base_url(username)
+        token = await self._api_client.exchange_login_user(baseUrl, idToken["id_token"])
         self._user_token = token
         return token
 
