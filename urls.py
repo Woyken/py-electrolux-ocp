@@ -41,7 +41,7 @@ def token_url(
 ):
     # https://api.ocp.electrolux.one/one-account-authorization/api/v1/token
     return RequestParams(
-        "GET",
+        "POST",
         urljoin(baseUrl, "one-account-authorization/api/v1/token"),
         None,
         headers,
