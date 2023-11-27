@@ -1,5 +1,8 @@
+import asyncio
 import json
 from typing import Any, Dict, Literal, Optional, TypedDict, Union, cast
+
+from pyelectroluxconnect.oneApp.oneAppApi import OneAppApi
 
 
 class TriggerActionValue(TypedDict):
@@ -245,3 +248,12 @@ def parse_capabilities(
     return availableCapabilities
     pass
 
+async def main():
+    client = OneAppApi("test", "test")
+    appliances = await client.get_appliances_list(True)
+    capabilities = await client.get_appliance_capabilities(appliances[0].get("applianceId"))
+    status = await client.get_appliance_status(appliances[0].get("applianceId"), False)
+    # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaa", json.dumps(status))
+    print(json.dumps(parse_capabilities(capabilities, status)))
+
+asyncio.run(main())
