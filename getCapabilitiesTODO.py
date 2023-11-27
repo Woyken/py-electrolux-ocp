@@ -150,6 +150,7 @@ def parse_capabilities(
         capabilityType = capabilityValue["type"]
         defaultAccess = capabilityValue["access"]
         allPossibleValues = capabilityValue.get("values")
+        # TODO "values" field contains inner overrides, ex: "userSelections/programUID":"values":"BLANKET_PR_DUVET":"startTime":"access": "readwrite"
         if availableCapabilities.get(capabilityKey) is None:
             availableCapabilities[capabilityKey] = {
                 "allPossibleValues": allPossibleValues,
