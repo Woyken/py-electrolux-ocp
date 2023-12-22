@@ -152,7 +152,7 @@ class OneAppApiClient:
             data: list[ApplienceStatusResponse] = await response.json()
             return data
 
-    async def get_appliance_status(self, baseUrl: str, token: str, id, includeMetadata):
+    async def get_appliance_status(self, baseUrl: str, token: str, id: str, includeMetadata: bool):
         reqParams = get_appliance_by_id_url(
             baseUrl,
             self._api_headers_base(token),
