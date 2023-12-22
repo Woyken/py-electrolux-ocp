@@ -1,6 +1,7 @@
 import asyncio
 import json
 from typing import Any, Dict, Literal, Optional, TypedDict, Union, cast
+from pyelectroluxconnect.oneApp.apiModels import ApplienceStatusResponse
 
 from pyelectroluxconnect.oneApp.oneAppApi import OneAppApi
 
@@ -60,7 +61,7 @@ class ParsedPossibleProperty(TypedDict):
 
 
 def parse_capabilities(
-    capabilitiesResponse: Dict[str, Capability], currentProperties: Dict[str, Any]
+    capabilitiesResponse: Dict[str, Capability], currentProperties: ApplienceStatusResponse
 ):
     # step through capabilities
     # find "values" for all possible values
@@ -81,6 +82,7 @@ def parse_capabilities(
                 "Do not pass non bool conditions to parse_trigger_condition"
             )
 
+        # TODO, handle "$self" action
         if triggerCondition["operator"] == "eq":
             operand1 = triggerCondition["operand_1"]
             if operand1 == "value":
