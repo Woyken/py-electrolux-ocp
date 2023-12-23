@@ -3,9 +3,8 @@ from types import TracebackType
 from typing import Any, Callable, Optional, Type
 from aiohttp import ClientError, ClientSession, ClientWebSocketResponse, WSMsgType
 
-from pyelectroluxconnect.Session import RequestError
-
 from .apiModels import WebSocketResponse
+
 
 class WebSocketClient:
     def __init__(self, url: str, clientSession: Optional[ClientSession] = None):
@@ -35,9 +34,7 @@ class WebSocketClient:
         await self.disconnect()
         await self._connect(headers)
 
-    async def _connect(
-        self, headers: dict[str, Any]
-    ):
+    async def _connect(self, headers: dict[str, Any]):
         self.retry = True
         while self.retry:
             try:
@@ -53,6 +50,9 @@ class WebSocketClient:
             except ClientError:
                 # Connection dropped, retry in couple of seconds
                 await asyncio.sleep(self.retry_interval)
+            except Exception:
+                # Unknown error
+                await asyncio.sleep(self.retry_interval * 5)
 
     async def handle_messages(self, ws: ClientWebSocketResponse):
         try:
@@ -60,7 +60,7 @@ class WebSocketClient:
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
                     break
                 if msg.type == WSMsgType.ERROR:
-                    raise RequestError()
+                    raise Exception("Websocket error")
 
                 if msg.type == WSMsgType.TEXT:
                     parsed_message: WebSocketResponse = msg.json()
