@@ -107,7 +107,7 @@ class OneAppApi:
         result = await self._api_client.get_user_metadata(baseUrl, token)
         return result
 
-    async def get_appliances_list(self, includeMetadata: bool):
+    async def get_appliances_list(self, includeMetadata: bool = False):
         """Get list of all user's appliances"""
         token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
@@ -117,7 +117,7 @@ class OneAppApi:
         )
         return result
 
-    async def get_appliance_status(self, id: str, includeMetadata: bool):
+    async def get_appliance_status(self, id: str, includeMetadata: bool = False):
         """Get current status of appliance by id"""
         token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
