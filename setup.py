@@ -20,7 +20,7 @@ setuptools.setup(
     license="Apache Software License",
     long_description_content_type="text/markdown",
     long_description=long_description,
-    name="py-electrolux-ocp",
+    name="pyelectroluxocp",
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     url="https://github.com/Woyken/py-electrolux-ocp",
