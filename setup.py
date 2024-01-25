@@ -17,7 +17,7 @@ setuptools.setup(
     description="Electrolux OneApp OCP API",
     install_requires=["aiohttp"],
     keywords="home automation electrolux aeg ocp oneapp api",
-    license="Apache Software License",
+    license="MIT License",
     long_description_content_type="text/markdown",
     long_description=long_description,
     name="pyelectroluxocp",
