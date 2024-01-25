@@ -4,5 +4,6 @@
     "python.terminal.activateEnvInCurrentTerminal": true,
     "python.terminal.activateEnvironment": true,
     "python.analysis.autoImportCompletions": true,
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true
 }
