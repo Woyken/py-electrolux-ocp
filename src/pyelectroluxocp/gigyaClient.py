@@ -33,7 +33,7 @@ def UrlEncode(value):
 
 def buildQS(params: dict):
     """Converts a params dictionary to a sorted query string"""
-    queryString = ""
+    query_string = ""
     amp = ""
     # keys = params.keys()
     keys = list(params.keys())
@@ -41,74 +41,74 @@ def buildQS(params: dict):
     for key in keys:
         value = params.get(key)
         if value is not None:
-            queryString += amp + key + "=" + UrlEncode(value)
+            query_string += amp + key + "=" + UrlEncode(value)
             amp = "&"
 
-    return queryString
+    return query_string
 
 
 def calcOAuth1BaseString(
-    httpMethod: str, url: str, isSecureConnection: bool, requestParams: dict
+    http_method: str, url: str, is_secure_connection: bool, request_params: dict
 ):
-    normalizedUrl = ""
+    normalized_url = ""
     u = urlparse(url)
 
-    if isSecureConnection:
+    if is_secure_connection:
         protocol = "https"
     else:
         protocol = u.scheme.lower()
 
     port = u.port
 
-    normalizedUrl += protocol + "://"
+    normalized_url += protocol + "://"
     if u.hostname is None:
         raise Exception("hostname is expected to always not be None")
-    normalizedUrl += u.hostname.lower()
+    normalized_url += u.hostname.lower()
 
     if port != None and (
         (protocol == "http" and port != 80) or (protocol == "https" and port != 443)
     ):
-        normalizedUrl += ":" + str(port)
+        normalized_url += ":" + str(port)
 
-    normalizedUrl += u.path
+    normalized_url += u.path
 
     # Create a sorted list of query parameters
-    queryString = buildQS(requestParams)
+    query_string = buildQS(request_params)
 
     # Construct the base string from the HTTP method, the URL and the parameters
-    baseString = (
-        httpMethod.upper()
+    base_string = (
+        http_method.upper()
         + "&"
-        + UrlEncode(normalizedUrl)
+        + UrlEncode(normalized_url)
         + "&"
-        + UrlEncode(queryString)
+        + UrlEncode(query_string)
     )
 
-    return baseString
+    return base_string
 
 
-def calcSignature(baseString: str, secretKey: str):
-    encodedBase = baseString.encode("utf-8")
-    encodedKey = secretKey.encode("utf-8")
-    rawHmac = hmac.new(b64decode(encodedKey), encodedBase, sha1).digest()
-    signature = b64encode(rawHmac)
+def calcSignature(base_string: str, secret_key: str):
+    encoded_base = base_string.encode("utf-8")
+    encoded_key = secret_key.encode("utf-8")
+    raw_hmac = hmac.new(b64decode(encoded_key), encoded_base, sha1).digest()
+    signature = b64encode(raw_hmac)
     return signature.decode("utf-8")
 
 
 def getOAuth1Signature(
-    secretKey: str,
-    httpMethod: str,
+    secret_key: str,
+    http_method: str,
     url: str,
-    isSecureConnection: bool,
-    requestParams: dict,
+    is_secure_connection: bool,
+    request_params: dict,
 ):
     # Taken from https://github.com/SAP/gigya-python-sdk/blob/main/GSSDK.py#L276
     # Create the BaseString.
-    baseString = calcOAuth1BaseString(
-        httpMethod, url, isSecureConnection, requestParams
+    base_string = calcOAuth1BaseString(
+        http_method, url, is_secure_connection, request_params
     )
 
-    return calcSignature(baseString, secretKey)
+    return calcSignature(base_string, secret_key)
 
 
 class GigyaClient:
@@ -168,29 +168,29 @@ class GigyaClient:
             return data
 
     async def get_JWT(
-        self, sessionToken: str, sessionSecret: str, gmid: str, ucid: str
+        self, session_token: str, session_secret: str, gmid: str, ucid: str
     ):
         # https://accounts.eu1.gigya.com/accounts.getJWT
         url = f"https://accounts.{self._domain}/accounts.getJWT"
 
-        dataParams = {
+        data_params = {
             "apiKey": self._api_key,
             "fields": "country",
             "format": "json",
             "gmid": gmid,
             "httpStatusCodes": False,
             "nonce": self._generate_nonce(),
-            "oauth_token": sessionToken,
+            "oauth_token": session_token,
             "sdk": "Android_6.2.1",
             "targetEnv": "mobile",
             "timestamp": floor(time.time()),
             "ucid": ucid,
         }
-        dataParams["sig"] = getOAuth1Signature(
-            sessionSecret, "POST", url, True, dataParams
+        data_params["sig"] = getOAuth1Signature(
+            session_secret, "POST", url, True, data_params
         )
 
-        async with await self._get_session().post(url, data=dataParams) as response:
+        async with await self._get_session().post(url, data=data_params) as response:
             data: GetJWTResponse = await response.json(content_type=None)
             return data
 

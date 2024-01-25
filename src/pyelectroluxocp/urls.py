@@ -32,94 +32,96 @@ def multi_urljoin(*parts: str):
 
 
 def token_url(
-    baseUrl: str,
+    base_url: str,
     headers: dict[str, str],
-    grantType: str,
-    clientSecret: str | None = None,
-    idToken: str | None = None,
-    refreshToken: str | None = None,
+    grant_type: str,
+    client_secret: str | None = None,
+    id_token: str | None = None,
+    refresh_token: str | None = None,
 ):
     # https://api.ocp.electrolux.one/one-account-authorization/api/v1/token
     return RequestParams(
         "POST",
-        urljoin(baseUrl, "one-account-authorization/api/v1/token"),
+        urljoin(base_url, "one-account-authorization/api/v1/token"),
         None,
         headers,
         {
-            "grantType": grantType,
+            "grantType": grant_type,
             "clientId": CLIENT_ID_ELECTROLUX,
-            "clientSecret": clientSecret,
-            "idToken": idToken,
-            "refreshToken": refreshToken,
+            "clientSecret": client_secret,
+            "idToken": id_token,
+            "refreshToken": refresh_token,
             "scope": "",
         },
     )
 
 
 def identity_providers_url(
-    baseUrl: str, headers: dict[str, str], brand: str, username: str
+    base_url: str, headers: dict[str, str], brand: str, username: str
 ):
     # https://api.ocp.electrolux.one/one-account-user/api/v1/identity-providers?brand=electrolux&email={{username}}
     return RequestParams(
         "GET",
-        urljoin(baseUrl, "one-account-user/api/v1/identity-providers"),
+        urljoin(base_url, "one-account-user/api/v1/identity-providers"),
         {"brand": brand, "email": username},
         headers,
         None,
     )
 
 
-def current_user_metadata_url(baseUrl: str, headers: dict[str, str]):
+def current_user_metadata_url(base_url: str, headers: dict[str, str]):
     # https://api.ocp.electrolux.one/one-account-user/api/v1/users/current
     return RequestParams(
         "GET",
-        urljoin(baseUrl, "one-account-user/api/v1/identity-providers"),
+        urljoin(base_url, "one-account-user/api/v1/identity-providers"),
         None,
         headers,
         None,
     )
 
 
-def list_appliances_url(baseUrl: str, headers: dict[str, str], includeMetadata: bool):
+def list_appliances_url(base_url: str, headers: dict[str, str], include_metadata: bool):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances?includeMetadata=true
     return RequestParams(
         "GET",
-        urljoin(baseUrl, "appliance/api/v2/appliances"),
-        {"includeMetadata": "true"} if includeMetadata else None,
+        urljoin(base_url, "appliance/api/v2/appliances"),
+        {"includeMetadata": "true"} if include_metadata else None,
         headers,
         None,
     )
 
 
 def get_appliance_by_id_url(
-    baseUrl: str, headers: dict[str, str], id: str, includeMetadata: bool
+    baseUrl: str, headers: dict[str, str], id: str, include_metadata: bool
 ):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}
     return RequestParams(
         "GET",
         multi_urljoin(baseUrl, "appliance/api/v2/appliances", id),
-        {"includeMetadata": "true"} if includeMetadata else None,
+        {"includeMetadata": "true"} if include_metadata else None,
         headers,
         None,
     )
 
 
-def get_appliance_capabilities_url(baseUrl: str, headers: dict[str, str], id: str):
+def get_appliance_capabilities_url(base_url: str, headers: dict[str, str], id: str):
     # https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/capabilities
     return RequestParams(
         "GET",
-        multi_urljoin(baseUrl, "appliance/api/v2/appliances", id, "capabilities"),
+        multi_urljoin(base_url, "appliance/api/v2/appliances", id, "capabilities"),
         None,
         headers,
         None,
     )
 
 
-def get_appliances_info_by_ids_url(baseUrl: str, headers: dict[str, str], ids: list[str]):
+def get_appliances_info_by_ids_url(
+    base_url: str, headers: dict[str, str], ids: list[str]
+):
     # POST https://api.ocp.electrolux.one/appliance/api/v2/appliances/info
     return RequestParams(
         "POST",
-        multi_urljoin(baseUrl, "appliance/api/v2/appliances/info"),
+        multi_urljoin(base_url, "appliance/api/v2/appliances/info"),
         None,
         headers,
         {
@@ -129,13 +131,13 @@ def get_appliances_info_by_ids_url(baseUrl: str, headers: dict[str, str], ids: l
 
 
 def appliance_command_url(
-    baseUrl: str, headers: dict[str, str], id: str, commandData: Dict[str, Any]
+    base_url: str, headers: dict[str, str], id: str, command_data: Dict[str, Any]
 ):
     # PUT https://api.ocp.electrolux.one/appliance/api/v2/appliances/{{Id}}/command
     return RequestParams(
         "PUT",
-        multi_urljoin(baseUrl, "appliance/api/v2/appliances", id, "command"),
+        multi_urljoin(base_url, "appliance/api/v2/appliances", id, "command"),
         None,
         headers,
-        commandData,
+        command_data,
     )

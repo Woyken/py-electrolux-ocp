@@ -41,8 +41,8 @@ class OneAppApi:
         ):
             return self._client_cred_token
 
-        baseUrl = await self._get_base_url()
-        token = await self._api_client.login_client_credentials(baseUrl)
+        base_url = await self._get_base_url()
+        token = await self._api_client.login_client_credentials(base_url)
         self._client_cred_token = token
         return token
 
@@ -52,7 +52,7 @@ class OneAppApi:
         headers = {
             "Authorization": token,
             "appliances": dumps(
-                [{"applianceId": applianceId} for applianceId in appliances]
+                [{"applianceId": appliance_id} for appliance_id in appliances]
             ),
             "version": "2",
         }
@@ -84,55 +84,57 @@ class OneAppApi:
             if not self._user_token.should_renew():
                 return self._user_token
 
-            baseUrl = await self._get_base_url()
+            base_url = await self._get_base_url()
 
             token = await self._api_client.refresh_token_user(
-                baseUrl, self._user_token.token["refreshToken"]
+                base_url, self._user_token.token["refreshToken"]
             )
             self._user_token = token
             return token
 
-        gigyaClient = await self._get_gigya_client()
-        idToken = await gigyaClient.login_user(self._username, self._password)
-        baseUrl = await self._get_base_url()
-        token = await self._api_client.exchange_login_user(baseUrl, idToken["id_token"])
+        gigya_client = await self._get_gigya_client()
+        id_token = await gigya_client.login_user(self._username, self._password)
+        base_url = await self._get_base_url()
+        token = await self._api_client.exchange_login_user(
+            base_url, id_token["id_token"]
+        )
         self._user_token = token
         return token
 
     async def get_user_metadata(self):
         """Get details about user and preferences"""
         token = await self._get_formatted_user_token()
-        baseUrl = await self._get_base_url()
+        base_url = await self._get_base_url()
 
-        result = await self._api_client.get_user_metadata(baseUrl, token)
+        result = await self._api_client.get_user_metadata(base_url, token)
         return result
 
-    async def get_appliances_list(self, includeMetadata: bool = False):
+    async def get_appliances_list(self, include_metadata: bool = False):
         """Get list of all user's appliances"""
         token = await self._get_formatted_user_token()
-        baseUrl = await self._get_base_url()
+        base_url = await self._get_base_url()
 
         result = await self._api_client.get_appliances_list(
-            baseUrl, token, includeMetadata
+            base_url, token, include_metadata
         )
         return result
 
-    async def get_appliance_status(self, id: str, includeMetadata: bool = False):
+    async def get_appliance_status(self, id: str, include_metadata: bool = False):
         """Get current status of appliance by id"""
         token = await self._get_formatted_user_token()
-        baseUrl = await self._get_base_url()
+        base_url = await self._get_base_url()
 
         result = await self._api_client.get_appliance_status(
-            baseUrl, token, id, includeMetadata
+            base_url, token, id, include_metadata
         )
         return result
 
     async def get_appliance_capabilities(self, id: str):
         """Get appliance capabilities"""
         token = await self._get_formatted_user_token()
-        baseUrl = await self._get_base_url()
+        base_url = await self._get_base_url()
 
-        result = await self._api_client.get_appliance_capabilities(baseUrl, token, id)
+        result = await self._api_client.get_appliance_capabilities(base_url, token, id)
         return result
 
     async def get_appliances_info(self, ids: list[str]):
@@ -143,12 +145,12 @@ class OneAppApi:
         result = await self._api_client.get_appliances_info(baseUrl, token, ids)
         return result
 
-    async def execute_appliance_command(self, id: str, commandData: Dict[str, Any]):
+    async def execute_appliance_command(self, id: str, command_data: Dict[str, Any]):
         """Execute command for appliance"""
         token = await self._get_formatted_user_token()
-        baseUrl = await self._get_base_url()
+        base_url = await self._get_base_url()
         result = await self._api_client.execute_appliance_command(
-            baseUrl, token, id, commandData
+            base_url, token, id, command_data
         )
         return result
 
@@ -165,8 +167,8 @@ class OneAppApi:
             await self._client_session.close()
 
     async def _get_formatted_client_cred_token(self):
-        clientCredToken = await self.get_client_cred_token()
-        return f'{clientCredToken.token["tokenType"]} {clientCredToken.token["accessToken"]}'
+        client_cred_token = await self.get_client_cred_token()
+        return f'{client_cred_token.token["tokenType"]} {client_cred_token.token["accessToken"]}'
 
     def _get_session(self):
         if self._client_session is None:
@@ -205,11 +207,11 @@ class OneAppApi:
         if self._gigya_client is not None:
             return self._gigya_client
         data = await self._get_identity_providers()
-        gigyaClient = GigyaClient(
+        gigya_client = GigyaClient(
             data[0]["domain"], data[0]["apiKey"], self._get_session()
         )
-        self._gigya_client = gigyaClient
-        return gigyaClient
+        self._gigya_client = gigya_client
+        return gigya_client
 
     async def _get_websocket_client(self):
         if self._ws_client is not None:

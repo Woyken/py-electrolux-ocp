@@ -42,10 +42,10 @@ class UserToken:
 class ClientToken:
     def __init__(self, token: ClientCredTokenResponse) -> None:
         self.token = token
-        self.expiresAt = datetime.now() + timedelta(seconds=token["expiresIn"])
+        self.expires_at = datetime.now() + timedelta(seconds=token["expiresIn"])
 
     def should_renew(self):
-        return self.expiresAt < (datetime.now() - timedelta(minutes=2))
+        return self.expires_at < (datetime.now() - timedelta(minutes=2))
 
 
 def decodeJwt(token: str):
@@ -75,126 +75,128 @@ class OneAppApiClient:
             }
         return headers
 
-    async def login_client_credentials(self, baseUrl: str):
+    async def login_client_credentials(self, base_url: str):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
-        reqParams = token_url(
-            baseUrl,
+        req_params = token_url(
+            base_url,
             self._api_headers_base(None),
             "client_credentials",
-            clientSecret=CLIENT_SECRET_ELECTROLUX,
+            client_secret=CLIENT_SECRET_ELECTROLUX,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             token: ClientCredTokenResponse = await response.json()
             return ClientToken(token)
 
-    async def exchange_login_user(self, baseUrl: str, idToken: str):
+    async def exchange_login_user(self, base_url: str, id_token: str):
         """Exchange external id token to api token"""
-        decodedToken = decodeJwt(idToken)
-        reqParams = token_url(
-            baseUrl,
+        decodedToken = decodeJwt(id_token)
+        req_params = token_url(
+            base_url,
             {
                 **self._api_headers_base(None),
                 "Origin-Country-Code": decodedToken["country"],
             },
             "urn:ietf:params:oauth:grant-type:token-exchange",
-            idToken=idToken,
+            id_token=id_token,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             token: UserTokenResponse = await response.json()
             return UserToken(token)
 
-    async def refresh_token_user(self, baseUrl: str, refreshToken: str):
-        reqParams = token_url(
-            baseUrl,
+    async def refresh_token_user(self, base_url: str, refresh_token: str):
+        req_params = token_url(
+            base_url,
             self._api_headers_base(None),
             "refresh_token",
-            refreshToken=refreshToken,
+            refresh_token=refresh_token,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             newToken: UserTokenResponse = await response.json()
             return UserToken(newToken)
 
     async def get_identity_providers(
-        self, baseUrl: str, clientCredToken: str, username: str
+        self, base_url: str, client_cred_token: str, username: str
     ):
-        reqParams = identity_providers_url(
-            baseUrl,
+        req_params = identity_providers_url(
+            base_url,
             {
                 **self._api_headers_base(None),
-                "Authorization": clientCredToken,
+                "Authorization": client_cred_token,
             },
             BRAND_ELECTROLUX,
             username,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: list[AuthResponse] = await response.json()
             return data
 
-    async def get_user_metadata(self, baseUrl: str, token: str):
-        reqParams = current_user_metadata_url(baseUrl, self._api_headers_base(token))
+    async def get_user_metadata(self, base_url: str, token: str):
+        req_params = current_user_metadata_url(base_url, self._api_headers_base(token))
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: UserMetadataResponse = await response.json()
             return data
 
     async def get_appliances_list(
-        self, baseUrl: str, token: str, includeMetadata: bool
+        self, base_url: str, token: str, include_metadata: bool
     ):
-        reqParams = list_appliances_url(
-            baseUrl, self._api_headers_base(token), includeMetadata
+        req_params = list_appliances_url(
+            base_url, self._api_headers_base(token), include_metadata
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: list[ApplienceStatusResponse] = await response.json()
             return data
 
-    async def get_appliance_status(self, baseUrl: str, token: str, id: str, includeMetadata: bool):
-        reqParams = get_appliance_by_id_url(
-            baseUrl,
+    async def get_appliance_status(
+        self, base_url: str, token: str, id: str, include_metadata: bool
+    ):
+        req_params = get_appliance_by_id_url(
+            base_url,
             self._api_headers_base(token),
             id,
-            includeMetadata,
+            include_metadata,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: ApplienceStatusResponse = await response.json()
             return data
 
-    async def get_appliance_capabilities(self, baseUrl: str, token: str, id: str):
-        reqParams = get_appliance_capabilities_url(
-            baseUrl, self._api_headers_base(token), id
+    async def get_appliance_capabilities(self, base_url: str, token: str, id: str):
+        req_params = get_appliance_capabilities_url(
+            base_url, self._api_headers_base(token), id
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: Dict[str, Any] = await response.json()
             return data
 
-    async def get_appliances_info(self, baseUrl: str, token: str, ids: list[str]):
-        reqParams = get_appliances_info_by_ids_url(
-            baseUrl,
+    async def get_appliances_info(self, base_url: str, token: str, ids: list[str]):
+        req_params = get_appliances_info_by_ids_url(
+            base_url,
             self._api_headers_base(token),
             ids,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             data: list[ApplianceInfoResponse] = await response.json()
             return data
 
     async def execute_appliance_command(
-        self, baseUrl: str, token: str, id: str, commandData: Dict[str, Any]
+        self, base_url: str, token: str, id: str, command_data: Dict[str, Any]
     ):
-        reqParams = appliance_command_url(
-            baseUrl,
+        req_params = appliance_command_url(
+            base_url,
             self._api_headers_base(token),
             id,
-            commandData,
+            command_data,
         )
 
-        async with await self._get_session().request(**reqParams.__dict__) as response:
+        async with await self._get_session().request(**req_params.__dict__) as response:
             await response.wait_for_close()
             return
 

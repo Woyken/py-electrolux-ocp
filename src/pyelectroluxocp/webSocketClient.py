@@ -7,8 +7,8 @@ from .apiModels import WebSocketResponse
 
 
 class WebSocketClient:
-    def __init__(self, url: str, clientSession: Optional[ClientSession] = None):
-        self._client_session = clientSession
+    def __init__(self, url: str, client_session: Optional[ClientSession] = None):
+        self._client_session = client_session
         self._close_session = False
         self._url = url
         self.websocket = None
