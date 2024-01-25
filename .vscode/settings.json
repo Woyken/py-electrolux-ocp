@@ -1,0 +1,8 @@
+{
+    "python.createEnvironment.contentButton": "show",
+    "python.missingPackage.severity": "Error",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.autoImportCompletions": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+}
