@@ -85,6 +85,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             token: ClientCredTokenResponse = await response.json()
             return ClientToken(token)
 
@@ -102,6 +103,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             token: UserTokenResponse = await response.json()
             return UserToken(token)
 
@@ -114,6 +116,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             newToken: UserTokenResponse = await response.json()
             return UserToken(newToken)
 
@@ -131,6 +134,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: list[AuthResponse] = await response.json()
             return data
 
@@ -138,6 +142,7 @@ class OneAppApiClient:
         req_params = current_user_metadata_url(base_url, self._api_headers_base(token))
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: UserMetadataResponse = await response.json()
             return data
 
@@ -149,6 +154,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: list[ApplienceStatusResponse] = await response.json()
             return data
 
@@ -163,6 +169,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: ApplienceStatusResponse = await response.json()
             return data
 
@@ -172,6 +179,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: Dict[str, Any] = await response.json()
             return data
 
@@ -183,6 +191,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             data: list[ApplianceInfoResponse] = await response.json()
             return data
 
@@ -197,6 +206,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
+            response.raise_for_status()
             await response.wait_for_close()
             return
 

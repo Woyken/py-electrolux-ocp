@@ -143,6 +143,7 @@ class GigyaClient:
                 "targetEnv": "mobile",
             },
         ) as response:
+            response.raise_for_status()
             data: SocializeGetIdsResponse = await response.json(content_type=None)
             return data
 
@@ -164,6 +165,7 @@ class GigyaClient:
                 "ucid": ucid,
             },
         ) as response:
+            response.raise_for_status()
             data: LoginResponse = await response.json(content_type=None)
             return data
 
@@ -191,6 +193,7 @@ class GigyaClient:
         )
 
         async with await self._get_session().post(url, data=data_params) as response:
+            response.raise_for_status()
             data: GetJWTResponse = await response.json(content_type=None)
             return data
 
