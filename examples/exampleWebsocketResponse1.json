@@ -1,0 +1,24 @@
+{
+    "ConnectionId": "HMEZecKDFiACHeA=",
+    "Api": "STREAM",
+    "Version": "2.0",
+    "Payload": {
+        "Appliances": [
+            {
+                "ApplianceId": "904540241_02:22804076-433E5432CC72",
+                "Metrics": [
+                    {
+                        "Name": "timeToEnd",
+                        "Value": 4080,
+                        "Timestamp": "2023-06-25T17:32:47Z"
+                    },
+                    {
+                        "Name": "doorState",
+                        "Value": "OPEN",
+                        "Timestamp": "2023-06-25T17:32:47Z"
+                    }
+                ]
+            }
+        ]
+    }
+}

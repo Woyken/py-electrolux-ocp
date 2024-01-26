@@ -1,0 +1,28 @@
+{
+    "ConnectionId": "HMEZecKDFiACHeA=",
+    "Api": "STREAM",
+    "Version": "2.0",
+    "Payload": {
+        "Appliances": [
+            {
+                "ApplianceId": "904540241_02:22804076-433E5432CC72",
+                "Metrics": [
+                    {
+                        "Name": "userSelections",
+                        "Value": {
+                            "analogTemperature": "30_CELSIUS",
+                            "programUID": "QUICK_20_MIN_PR_20MIN3KG",
+                            "analogSpinSpeed": "1200_RPM"
+                        },
+                        "Timestamp": "2023-06-27T17:47:08Z"
+                    },
+                    {
+                        "Name": "washingNominalLoadWeight",
+                        "Value": 3000,
+                        "Timestamp": "2023-06-27T17:47:08Z"
+                    }
+                ]
+            }
+        ]
+    }
+}
