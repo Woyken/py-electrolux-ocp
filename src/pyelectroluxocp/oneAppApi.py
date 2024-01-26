@@ -159,16 +159,21 @@ class OneAppApi:
         return result
 
     async def watch_for_appliance_state_updates(
-        self, appliance_ids: list[str], callback: Callable[[Dict[str, Any]], None]
+        self,
+        appliance_ids: list[str],
+        callback: Callable[[dict[str, Dict[str, Any]]], None],
     ):
         """Fetch current appliance state and watch for state changes"""
 
         def handle_websocket_response(responseData: WebSocketResponse):
             for appliance_update_data in responseData.get("Payload").get("Appliances"):
-                if appliance_update_data.get("ApplianceId") in appliance_ids:
-                    appliance_state_update_dict: Dict[str, Any] = dict()
+                appliance_id = appliance_update_data.get("ApplianceId")
+                if appliance_id in appliance_ids:
+                    appliance_state_update_dict: dict[str, Dict[str, Any]] = {
+                        appliance_id: {}
+                    }
                     for appliance_metric in appliance_update_data.get("Metrics"):
-                        appliance_state_update_dict[
+                        appliance_state_update_dict[appliance_id][
                             appliance_metric.get("Name")
                         ] = appliance_metric.get("Value")
                     callback(appliance_state_update_dict)
@@ -178,7 +183,12 @@ class OneAppApi:
                 appliances_states = await self.get_appliances_list(False)
                 for applianceState in appliances_states:
                     if applianceState.get("applianceId") in appliance_ids:
-                        callback(applianceState.get("properties").get("reported"))
+                        appliance_state_update_dict = {
+                            applianceState.get("applianceId"): applianceState.get(
+                                "properties"
+                            ).get("reported")
+                        }
+                        callback(appliance_state_update_dict)
 
             task = asyncio.create_task(async_impl())
             self._running_tasks.add(task)
