@@ -16,7 +16,9 @@ class WebSocketClient:
         self.retry_interval = 5  # seconds
         self.heartbeat_interval = 5 * 60  # 5 minutes
         self.event_loop = asyncio.get_event_loop()
-        self.event_handlers: list[Callable[[WebSocketResponse], None]] = []
+        self.event_handlers: set[Callable[[WebSocketResponse], None]] = set()
+        self.event_websocket_connected_handlers: set[Callable] = set()
+        self.event_websocket_disconnected_handlers: set[Callable] = set()
 
     def _get_session(self):
         if self._client_session is None:
@@ -25,10 +27,28 @@ class WebSocketClient:
         return self._client_session
 
     def add_event_handler(self, handler: Callable[[WebSocketResponse], None]):
-        self.event_handlers.append(handler)
+        self.event_handlers.add(handler)
 
     def remove_event_handler(self, handler: Callable[[WebSocketResponse], None]):
-        self.event_handlers.remove(handler)
+        self.event_handlers.discard(handler)
+
+    def add_connected_event_handler(self, handler: Callable[[WebSocketResponse], None]):
+        self.event_websocket_connected_handlers.add(handler)
+
+    def remove_connected_event_handler(
+        self, handler: Callable[[WebSocketResponse], None]
+    ):
+        self.event_websocket_connected_handlers.discard(handler)
+
+    def add_disconnected_event_handler(
+        self, handler: Callable[[WebSocketResponse], None]
+    ):
+        self.event_websocket_disconnected_handlers.add(handler)
+
+    def remove_disconnected_event_handler(
+        self, handler: Callable[[WebSocketResponse], None]
+    ):
+        self.event_websocket_disconnected_handlers.discard(handler)
 
     async def connect(self, headers: dict[str, Any]):
         await self.disconnect()
@@ -45,6 +65,10 @@ class WebSocketClient:
                     heartbeat=self.heartbeat_interval,
                 ) as ws:
                     self.websocket = ws
+
+                    for handler in self.event_websocket_connected_handlers:
+                        self.event_loop.call_soon(handler)
+
                     # Block until connection closes
                     await self.handle_messages(ws)
             except ClientError:
@@ -68,6 +92,9 @@ class WebSocketClient:
                         self.event_loop.call_soon(handler, parsed_message)
         finally:
             await ws.close()
+            # Inform listeners about socket close event
+            for handler in self.event_websocket_disconnected_handlers:
+                self.event_loop.call_soon(handler)
 
     async def disconnect(self):
         self.retry = False
