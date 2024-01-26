@@ -24,6 +24,6 @@ setuptools.setup(
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src"),
     url="https://github.com/Woyken/py-electrolux-ocp",
-    version="0.0.4",
+    version="0.0.5",
     zip_safe=False,
 )
