@@ -180,7 +180,9 @@ class OneAppApi:
                     if applianceState.get("applianceId") in appliance_ids:
                         callback(applianceState.get("properties").get("reported"))
 
-            asyncio.get_event_loop().call_soon(async_impl)
+            task = asyncio.create_task(async_impl())
+            self._running_tasks.add(task)
+            task.add_done_callback(self._running_tasks.discard)
 
         await self.add_event_handler(handle_websocket_response)
         ws_client = await self._get_websocket_client()
