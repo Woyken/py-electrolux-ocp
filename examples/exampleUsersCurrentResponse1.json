@@ -1,0 +1,32 @@
+{
+    "firstName": "Name",
+    "lastName": "Surname",
+    "countryCode": "LT",
+    "locale": "lt",
+    "phoneNumbers": [
+        {
+            "type": "Mobile",
+            "number": null
+        },
+        {
+            "type": "Phone",
+            "number": null
+        }
+    ],
+    "enabledMarketingChannels": [],
+    "measurementUnits": {
+        "distanceMeasurementUnit": "KiloMeter",
+        "tempMeasurementUnit": "Celsius",
+        "surfaceMeasurementUnit": "SquareMeter",
+        "weightMeasurementUnit": "KiloGram",
+        "volumeMeasurementUnit": "CentiLiter"
+    },
+    "address": {
+        "zipCode": null,
+        "state": "",
+        "city": null,
+        "street": null,
+        "apartmentNumber": "",
+        "contactCareOf": ""
+    }
+}
