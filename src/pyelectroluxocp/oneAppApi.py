@@ -19,6 +19,7 @@ class OneAppApi:
     _user_token: Optional[UserToken] = None
     _identity_providers: Optional[list[AuthResponse]] = None
     _shutdown_complete_event: Optional[asyncio.Event] = None
+    _running_tasks: set[asyncio.Task] = set()
 
     def __init__(
         self,
@@ -46,19 +47,22 @@ class OneAppApi:
         self._client_cred_token = token
         return token
 
-    async def connect_websocket(self, appliances: list[str]):
+    async def connect_websocket(self, appliance_ids: list[str]):
         """Start websocket connection, listen to events"""
         token = await self._get_formatted_user_token()
         headers = {
             "Authorization": token,
             "appliances": dumps(
-                [{"applianceId": appliance_id} for appliance_id in appliances]
+                [{"applianceId": appliance_id} for appliance_id in appliance_ids]
             ),
             "version": "2",
         }
         ws_client = await self._get_websocket_client()
 
-        await ws_client.connect(headers)
+        # Connect to websocket and don't wait
+        task = asyncio.create_task(ws_client.connect(headers))
+        self._running_tasks.add(task)
+        task.add_done_callback(self._running_tasks.discard)
 
     async def disconnect_websocket(self):
         """Stop websocket connection"""
@@ -154,6 +158,39 @@ class OneAppApi:
         )
         return result
 
+    async def watch_for_appliance_state_updates(
+        self, appliance_ids: list[str], callback: Callable[[Dict[str, Any]], None]
+    ):
+        """Fetch current appliance state and watch for state changes"""
+
+        def handle_websocket_response(responseData: WebSocketResponse):
+            for appliance_update_data in responseData.get("Payload").get("Appliances"):
+                if appliance_update_data.get("ApplianceId") in appliance_ids:
+                    appliance_state_update_dict: Dict[str, Any] = dict()
+                    for appliance_metric in appliance_update_data.get("Metrics"):
+                        appliance_state_update_dict[
+                            appliance_metric.get("Name")
+                        ] = appliance_metric.get("Value")
+                    callback(appliance_state_update_dict)
+
+        def handle_disconnected_or_connected_event():
+            async def async_impl():
+                appliances_states = await self.get_appliances_list(False)
+                for applianceState in appliances_states:
+                    if applianceState.get("applianceId") in appliance_ids:
+                        callback(applianceState.get("properties").get("reported"))
+
+            asyncio.get_event_loop().call_soon(async_impl)
+
+        await self.add_event_handler(handle_websocket_response)
+        ws_client = await self._get_websocket_client()
+        # On every websocket reconnection fetch whole state again once more
+        ws_client.add_connected_event_handler(handle_disconnected_or_connected_event)
+        # TODO add interval polling while disconnected from websocket
+        ws_client.add_disconnected_event_handler(handle_disconnected_or_connected_event)
+
+        await self.connect_websocket(appliance_ids)
+
     async def close(self) -> None:
         """Dispose session and dependencies"""
         if self._gigya_client:
@@ -165,6 +202,9 @@ class OneAppApi:
 
         if self._client_session and self._close_session:
             await self._client_session.close()
+
+        for task in self._running_tasks:
+            task.cancel()
 
     async def _get_formatted_client_cred_token(self):
         client_cred_token = await self.get_client_cred_token()

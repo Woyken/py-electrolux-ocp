@@ -32,22 +32,16 @@ class WebSocketClient:
     def remove_event_handler(self, handler: Callable[[WebSocketResponse], None]):
         self.event_handlers.discard(handler)
 
-    def add_connected_event_handler(self, handler: Callable[[WebSocketResponse], None]):
+    def add_connected_event_handler(self, handler: Callable):
         self.event_websocket_connected_handlers.add(handler)
 
-    def remove_connected_event_handler(
-        self, handler: Callable[[WebSocketResponse], None]
-    ):
+    def remove_connected_event_handler(self, handler: Callable):
         self.event_websocket_connected_handlers.discard(handler)
 
-    def add_disconnected_event_handler(
-        self, handler: Callable[[WebSocketResponse], None]
-    ):
+    def add_disconnected_event_handler(self, handler: Callable):
         self.event_websocket_disconnected_handlers.add(handler)
 
-    def remove_disconnected_event_handler(
-        self, handler: Callable[[WebSocketResponse], None]
-    ):
+    def remove_disconnected_event_handler(self, handler: Callable):
         self.event_websocket_disconnected_handlers.discard(handler)
 
     async def connect(self, headers: dict[str, Any]):
