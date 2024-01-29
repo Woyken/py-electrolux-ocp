@@ -123,12 +123,12 @@ class OneAppApi:
         )
         return result
 
-    async def get_appliance_status(self, id: str, include_metadata: bool = False):
-        """Get current status of appliance by id"""
+    async def get_appliance_state(self, id: str, include_metadata: bool = False):
+        """Get current state of appliance by id"""
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
-        result = await self._api_client.get_appliance_status(
+        result = await self._api_client.get_appliance_state(
             base_url, token, id, include_metadata
         )
         return result
@@ -252,7 +252,7 @@ class OneAppApi:
             ) as f:
                 dump(appliance_capabilities, f, ensure_ascii=False, indent=4)
 
-            appliance_state = await self.get_appliance_status(
+            appliance_state = await self.get_appliance_state(
                 appliance["applianceId"], True
             )
             with open(
