@@ -167,6 +167,13 @@ class GigyaClient:
         ) as response:
             response.raise_for_status()
             data: LoginResponse = await response.json(content_type=None)
+            try:
+                if data['errorCode'] > 0:
+                    error_code=data['errorCode']
+                    error_details=data['errorDetails']
+                    raise LoginError(f'Error during login: Code {error_code} ({error_details})')
+            except KeyError:
+                raise LoginError('Unknown error during login')
             return data
 
     async def get_JWT(
@@ -224,3 +231,7 @@ class GigyaClient:
         exc_tb: Optional[TracebackType],
     ) -> Optional[bool]:
         await self.close()
+
+class LoginError(Exception):
+    '''Raised when login fails'''
+    pass
