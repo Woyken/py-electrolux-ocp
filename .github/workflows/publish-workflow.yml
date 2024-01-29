@@ -2,6 +2,10 @@ name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
 on: push
 
+concurrency:
+  cancel-in-progress: true
+  group: publish to PyPi
+  
 jobs:
   build:
     name: Build distribution 📦
