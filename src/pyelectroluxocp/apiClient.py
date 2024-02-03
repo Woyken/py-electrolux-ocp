@@ -136,6 +136,10 @@ class OneAppApiClient:
         async with await self._get_session().request(**req_params.__dict__) as response:
             response.raise_for_status()
             data: list[AuthResponse] = await response.json()
+
+            if data is None:
+                response_text = await response.text()
+                raise Exception(f"Response for {response.url}: [{response.status} {response.reason}] {response_text}")
             return data
 
     async def get_user_metadata(self, base_url: str, token: str):
@@ -156,6 +160,10 @@ class OneAppApiClient:
         async with await self._get_session().request(**req_params.__dict__) as response:
             response.raise_for_status()
             data: list[ApplienceStatusResponse] = await response.json()
+
+            if data is None:
+                response_text = await response.text()
+                raise Exception(f"Response for {response.url}: [{response.status} {response.reason}] {response_text}")
             return data
 
     async def get_appliance_state(
@@ -171,6 +179,10 @@ class OneAppApiClient:
         async with await self._get_session().request(**req_params.__dict__) as response:
             response.raise_for_status()
             data: ApplienceStatusResponse = await response.json()
+
+            if data is None:
+                response_text = await response.text()
+                raise Exception(f"Response for {response.url}: [{response.status} {response.reason}] {response_text}")
             return data
 
     async def get_appliance_capabilities(self, base_url: str, token: str, id: str):
@@ -181,6 +193,10 @@ class OneAppApiClient:
         async with await self._get_session().request(**req_params.__dict__) as response:
             response.raise_for_status()
             data: Dict[str, Any] = await response.json()
+
+            if data is None:
+                response_text = await response.text()
+                raise Exception(f"Response for {response.url}: [{response.status} {response.reason}] {response_text}")
             return data
 
     async def get_appliances_info(self, base_url: str, token: str, ids: list[str]):
@@ -193,6 +209,10 @@ class OneAppApiClient:
         async with await self._get_session().request(**req_params.__dict__) as response:
             response.raise_for_status()
             data: list[ApplianceInfoResponse] = await response.json()
+
+            if data is None:
+                response_text = await response.text()
+                raise Exception(f"Response for {response.url}: [{response.status} {response.reason}] {response_text}")
             return data
 
     async def execute_appliance_command(
