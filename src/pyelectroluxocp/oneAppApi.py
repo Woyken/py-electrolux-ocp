@@ -4,7 +4,7 @@ from types import TracebackType
 from typing import Any, Callable, Dict, Optional, Type
 from aiohttp import ClientSession
 
-from .apiClient import ClientToken, OneAppApiClient, UserToken
+from .oneAppApiClient import ClientToken, OneAppApiClient, UserToken
 from .const import BASE_URL, BASE_WEBSOCKET_URL
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
