@@ -67,10 +67,11 @@ class OneAppApi:
         }
         ws_client = await self._get_websocket_client()
         _LOGGER.debug("connect_websocket(), headers: %s", dumps(headers))
-        # Connect to websocket and don't wait
         task = asyncio.create_task(ws_client.connect(headers))
         self._running_tasks.add(task)
         task.add_done_callback(self._running_tasks.discard)
+
+        return await task
 
     async def disconnect_websocket(self):
         """Stop websocket connection"""

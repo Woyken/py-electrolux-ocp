@@ -13,7 +13,7 @@ pip install pyelectroluxocp
 
 ## Usage examples
 
-Example to listen for state changes for 100s
+Example to connect via websockets and listen for appliance state changes
 ```py
 import asyncio
 import json
@@ -28,8 +28,6 @@ async def main():
         def state_update_callback(a):
             print("appliance state updated", json.dumps((a)))
         await client.watch_for_appliance_state_updates([appliances[0].get("applianceId")], state_update_callback)
-
-        await asyncio.sleep(100)
 
 asyncio.run(main())
 ```
