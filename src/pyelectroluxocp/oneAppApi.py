@@ -1,5 +1,5 @@
 import asyncio
-from json import dumps
+from json import dump, dumps
 from types import TracebackType
 from typing import Any, Callable, Dict, Optional, Type
 from aiohttp import ClientSession
@@ -137,17 +137,17 @@ class OneAppApi:
         )
         return result
 
-    async def get_appliance_status(self, id: str, include_metadata: bool = False):
-        """Get current status of appliance by id"""
+    async def get_appliance_state(self, id: str, include_metadata: bool = False):
+        """Get current state of appliance by id"""
         _LOGGER.debug(
-            "get_appliance_capabilities(), id: %s, include_metadata: %s",
+            "get_appliance_state(), id: %s, include_metadata: %s",
             id,
             include_metadata,
         )
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
-        result = await self._api_client.get_appliance_status(
+        result = await self._api_client.get_appliance_state(
             base_url, token, id, include_metadata
         )
         return result
@@ -236,6 +236,67 @@ class OneAppApi:
         ws_client.add_disconnected_event_handler(handle_disconnected_or_connected_event)
 
         await self.connect_websocket(appliance_ids)
+
+    async def debug_dump_everything_to_files(
+        self, export_location: Optional[str] = None
+    ):
+        """DEBUG, Fetch everything and dump to temporary files. Default export location: ~/py-electrolux-ocp-dump/..."""
+        from pathlib import Path
+
+        home = Path.home() if export_location is None else Path(export_location)
+        dump_path = home.joinpath("py-electrolux-ocp-dump")
+        from shutil import rmtree
+
+        rmtree(dump_path, ignore_errors=True)
+        dump_path.mkdir(exist_ok=True)
+
+        user_metadata = await self.get_user_metadata()
+        with open(dump_path.joinpath("userMetadata.json"), "w", encoding="utf-8") as f:
+            dump(user_metadata, f, ensure_ascii=False, indent=4)
+
+        appliances_list = await self.get_appliances_list(True)
+        with open(
+            dump_path.joinpath("appliancesList.json"), "w", encoding="utf-8"
+        ) as f:
+            dump(appliances_list, f, ensure_ascii=False, indent=4)
+
+        appliances_info = await self.get_appliances_info(
+            [x["applianceId"] for x in appliances_list]
+        )
+        with open(
+            dump_path.joinpath("appliancesInfo.json"), "w", encoding="utf-8"
+        ) as f:
+            dump(appliances_info, f, ensure_ascii=False, indent=4)
+
+        for appliance in appliances_list:
+            import base64
+
+            appliance_id_folder_name = base64.urlsafe_b64encode(
+                appliance["applianceId"].encode()
+            ).decode()
+            dump_path_appliance = dump_path.joinpath(appliance_id_folder_name)
+            dump_path_appliance.mkdir(exist_ok=True)
+            appliance_capabilities = await self.get_appliance_capabilities(
+                appliance["applianceId"]
+            )
+            with open(
+                dump_path_appliance.joinpath("applianceCapabilities.json"),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                dump(appliance_capabilities, f, ensure_ascii=False, indent=4)
+
+            appliance_state = await self.get_appliance_state(
+                appliance["applianceId"], True
+            )
+            with open(
+                dump_path_appliance.joinpath("applianceState.json"),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                dump(appliance_state, f, ensure_ascii=False, indent=4)
+
+        print("DUMP generated at", dump_path)
 
     async def close(self) -> None:
         """Dispose session and dependencies"""

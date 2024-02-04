@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+
 class SocializeGetIdsResponse(TypedDict):
     callId: str
     errorCode: int
@@ -18,10 +19,12 @@ class LoginResponseProfile(TypedDict):
     country: str
     email: str
 
+
 class LoginResponseSessionInfo(TypedDict):
     sessionToken: str
     sessionSecret: str
     expires_in: str
+
 
 class LoginResponse(TypedDict):
     callId: str

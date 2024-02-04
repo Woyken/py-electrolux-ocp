@@ -240,7 +240,7 @@ class OneAppApiClient:
             data: list[ApplienceStatusResponse] = response_json
             return data
 
-    async def get_appliance_status(
+    async def get_appliance_state(
         self, base_url: str, token: str, id: str, include_metadata: bool
     ):
         _LOGGER.debug(
