@@ -1,3 +1,4 @@
+import logging
 import random
 import time
 from types import TracebackType
@@ -111,6 +112,9 @@ def getOAuth1Signature(
     return calcSignature(base_string, secret_key)
 
 
+_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("GigyaClient")
+
+
 class GigyaClient:
     def __init__(
         self, domain: str, api_key: str, client_session: Optional[ClientSession] = None
@@ -131,6 +135,7 @@ class GigyaClient:
 
     async def get_ids(self):
         # https://socialize.eu1.gigya.com/socialize.getIDs
+        _LOGGER.debug("get_ids()")
         url = f"https://socialize.{self._domain}/socialize.getIDs"
         async with await self._get_session().get(
             url,
@@ -143,12 +148,27 @@ class GigyaClient:
                 "targetEnv": "mobile",
             },
         ) as response:
+            _LOGGER.debug(
+                "get_ids(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
+                response.request_info.url,
+                response.request_info.headers,
+                response.status,
+                response.headers,
+            )
+            response_json = await response.json(content_type=None)
+            _LOGGER.debug(
+                "get_ids(), response, json: %s",
+                jsonstringify(response_json),
+            )
             response.raise_for_status()
-            data: SocializeGetIdsResponse = await response.json(content_type=None)
+            data: SocializeGetIdsResponse = response_json
             return data
 
     async def login_session(self, username: str, password: str, gmid: str, ucid: str):
         # https://accounts.eu1.gigya.com/accounts.login
+        _LOGGER.debug(
+            "login_session(), username: %s, gmid: %s, ucid: %s", username, gmid, ucid
+        )
         url = f"https://accounts.{self._domain}/accounts.login"
         async with await self._get_session().post(
             url,
@@ -165,14 +185,27 @@ class GigyaClient:
                 "ucid": ucid,
             },
         ) as response:
+            _LOGGER.debug(
+                "login_session(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
+                response.request_info.url,
+                response.request_info.headers,
+                response.status,
+                response.headers,
+            )
+            response_json = await response.json(content_type=None)
+            _LOGGER.debug(
+                "login_session(), response, json: %s",
+                jsonstringify(response_json),
+            )
             response.raise_for_status()
-            data: LoginResponse = await response.json(content_type=None)
+            data: LoginResponse = response_json
             return data
 
     async def get_JWT(
         self, session_token: str, session_secret: str, gmid: str, ucid: str
     ):
         # https://accounts.eu1.gigya.com/accounts.getJWT
+        _LOGGER.debug("get_JWT(), gmid: %s, ucid: %s", gmid, ucid)
         url = f"https://accounts.{self._domain}/accounts.getJWT"
 
         data_params = {
@@ -193,8 +226,20 @@ class GigyaClient:
         )
 
         async with await self._get_session().post(url, data=data_params) as response:
+            _LOGGER.debug(
+                "get_JWT(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
+                response.request_info.url,
+                response.request_info.headers,
+                response.status,
+                response.headers,
+            )
+            response_json = await response.json(content_type=None)
+            _LOGGER.debug(
+                "get_JWT(), response, json: %s",
+                jsonstringify(response_json),
+            )
             response.raise_for_status()
-            data: GetJWTResponse = await response.json(content_type=None)
+            data: GetJWTResponse = response_json
             return data
 
     async def login_user(self, username: str, password: str):

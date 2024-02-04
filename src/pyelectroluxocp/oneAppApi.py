@@ -9,6 +9,13 @@ from .const import BASE_URL, BASE_WEBSOCKET_URL
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
 from .apiModels import AuthResponse, WebSocketResponse
+from importlib.metadata import version
+import logging
+
+_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("OneAppApi")
+
+_LOGGER.debug("aiohttp version, %s", version("aiohttp"))
+_LOGGER.debug("asyncio version, %s", version("asyncio"))
 
 
 class OneAppApi:
@@ -32,7 +39,6 @@ class OneAppApi:
         self._client_session = client_session
         self._close_session = False
         self._api_client = OneAppApiClient(client_session)
-        pass
 
     async def get_client_cred_token(self):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
@@ -40,8 +46,10 @@ class OneAppApi:
             self._client_cred_token is not None
             and not self._client_cred_token.should_renew()
         ):
+            _LOGGER.debug("get_client_cred_token(), still valid token")
             return self._client_cred_token
 
+        _LOGGER.debug("get_client_cred_token(), need to refresh token")
         base_url = await self._get_base_url()
         token = await self._api_client.login_client_credentials(base_url)
         self._client_cred_token = token
@@ -58,7 +66,7 @@ class OneAppApi:
             "version": "2",
         }
         ws_client = await self._get_websocket_client()
-
+        _LOGGER.debug("connect_websocket(), headers: %s", dumps(headers))
         # Connect to websocket and don't wait
         task = asyncio.create_task(ws_client.connect(headers))
         self._running_tasks.add(task)
@@ -86,6 +94,10 @@ class OneAppApi:
         """
         if self._user_token is not None:
             if not self._user_token.should_renew():
+                _LOGGER.debug(
+                    "get_user_token(), return existing token, expiresAt: %s",
+                    self._user_token.expiresAt,
+                )
                 return self._user_token
 
             base_url = await self._get_base_url()
@@ -107,6 +119,7 @@ class OneAppApi:
 
     async def get_user_metadata(self):
         """Get details about user and preferences"""
+        _LOGGER.debug("get_user_metadata()")
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -115,6 +128,7 @@ class OneAppApi:
 
     async def get_appliances_list(self, include_metadata: bool = False):
         """Get list of all user's appliances"""
+        _LOGGER.debug("get_appliances_list(), include_metadata: %s", include_metadata)
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -125,6 +139,11 @@ class OneAppApi:
 
     async def get_appliance_status(self, id: str, include_metadata: bool = False):
         """Get current status of appliance by id"""
+        _LOGGER.debug(
+            "get_appliance_capabilities(), id: %s, include_metadata: %s",
+            id,
+            include_metadata,
+        )
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -135,6 +154,7 @@ class OneAppApi:
 
     async def get_appliance_capabilities(self, id: str):
         """Get appliance capabilities"""
+        _LOGGER.debug("get_appliance_capabilities(), id: %s", id)
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -143,6 +163,7 @@ class OneAppApi:
 
     async def get_appliances_info(self, ids: list[str]):
         """Get multiple appliances info"""
+        _LOGGER.debug("get_appliances_info(), ids: %s", dumps(ids))
         token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
@@ -151,6 +172,11 @@ class OneAppApi:
 
     async def execute_appliance_command(self, id: str, command_data: Dict[str, Any]):
         """Execute command for appliance"""
+        _LOGGER.debug(
+            "execute_appliance_command(), id: %s, command_data: %s",
+            id,
+            dumps(command_data),
+        )
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
         result = await self._api_client.execute_appliance_command(
@@ -166,6 +192,10 @@ class OneAppApi:
         """Fetch current appliance state and watch for state changes"""
 
         def handle_websocket_response(responseData: WebSocketResponse):
+            _LOGGER.debug(
+                "watch_for_appliance_state_updates().handle_websocket_response, responseData: %s",
+                dumps(responseData),
+            )
             for appliance_update_data in responseData.get("Payload").get("Appliances"):
                 appliance_id = appliance_update_data.get("ApplianceId")
                 if appliance_id in appliance_ids:
@@ -179,6 +209,10 @@ class OneAppApi:
                     callback(appliance_state_update_dict)
 
         def handle_disconnected_or_connected_event():
+            _LOGGER.debug(
+                "watch_for_appliance_state_updates().handle_disconnected_or_connected_event"
+            )
+
             async def async_impl():
                 appliances_states = await self.get_appliances_list(False)
                 for applianceState in appliances_states:
@@ -243,10 +277,23 @@ class OneAppApi:
 
     async def _get_base_url(self) -> str:
         if self._client_cred_token is None:
+            _LOGGER.debug(
+                "_get_base_url(), client_cred is not set, return BASE_URL: %s",
+                BASE_URL,
+            )
             return BASE_URL
         if self._identity_providers is None:
+            _LOGGER.debug(
+                "_get_base_url(), _identity_providers is not set, return BASE_URL: %s",
+                BASE_URL,
+            )
             return BASE_URL
+
         providers = await self._get_identity_providers()
+        _LOGGER.debug(
+            "_get_base_url(), getting identity providers, return first result.httpRegionalBaseUrl: %s",
+            providers[0]["httpRegionalBaseUrl"],
+        )
         return providers[0]["httpRegionalBaseUrl"]
 
     async def _get_regional_websocket_base_url(self):
