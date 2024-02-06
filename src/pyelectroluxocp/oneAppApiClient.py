@@ -5,6 +5,7 @@ import logging
 from types import TracebackType
 from typing import Any, Dict, Optional, Type
 from aiohttp import ClientSession
+from pyelectroluxocp import __version__
 
 from .urls import (
     appliance_command_url,
@@ -76,6 +77,7 @@ class OneAppApiClient:
             headers = {
                 **headers,
                 "Authorization": token,
+                "User-Agent": "pyelectroluxocp/" + __version__,
             }
         return headers
 
