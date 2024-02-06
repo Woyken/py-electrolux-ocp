@@ -9,13 +9,9 @@ from .const import BASE_URL, BASE_WEBSOCKET_URL
 from .webSocketClient import WebSocketClient
 from .gigyaClient import GigyaClient
 from .apiModels import AuthResponse, WebSocketResponse
-from importlib.metadata import version
 import logging
 
 _LOGGER: logging.Logger = logging.getLogger(__package__).getChild("OneAppApi")
-
-_LOGGER.debug("aiohttp version, %s", version("aiohttp"))
-_LOGGER.debug("asyncio version, %s", version("asyncio"))
 
 
 class OneAppApi:
