@@ -1,3 +1,40 @@
+[project]
+name = "pyelectroluxocp"
+dependencies = [
+  "aiohttp>=3.9.0",
+]
+requires-python = ">=3.10"
+authors = [
+  {name = "Woyken"},
+]
+maintainers = [
+  {name = "Woyken"},
+]
+description = "Electrolux OneApp OCP API"
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["home", "automation", "electrolux", "aeg", "ocp", "oneapp", "api"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Home Automation",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/Woyken/py-electrolux-ocp/"
+Documentation = "https://github.com/Woyken/py-electrolux-ocp/blob/main/README.md"
+Repository = "https://github.com/Woyken/py-electrolux-ocp.git"
+"Bug Tracker" = "https://github.com/Woyken/py-electrolux-ocp/issues"
+Changelog = "https://github.com/Woyken/py-electrolux-ocp/releases/"
+
+[tool.setuptools.dynamic]
+version = {attr = "pyelectroluxocp.__version__"}
+
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
