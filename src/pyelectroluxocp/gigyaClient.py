@@ -4,8 +4,8 @@ import time
 from types import TracebackType
 from typing import Optional, Type
 from urllib.parse import urlparse, quote_plus
-from aiohttp import ClientSession
-from json import dumps as jsonstringify
+from aiohttp import ClientResponse, ClientResponseError, ClientSession
+from json import decoder, dumps as jsonstringify
 import hmac
 from base64 import b64decode, b64encode
 from hashlib import sha1
@@ -133,6 +133,40 @@ class GigyaClient:
     def _generate_nonce(self):
         return f"{current_milli_time()}_{random.randrange(1000000000, 10000000000)}"
 
+    async def try_parse_json_from_response(self, client_response: ClientResponse):
+        if (
+            client_response.content_length is None
+            or client_response.content_length <= 0
+        ):
+            _LOGGER.error("Empty response received!")
+            client_response.raise_for_status()
+            raise LoginError(
+                f"Error during login. Empty response body. ResponseStatus: {client_response.status}"
+            )
+
+        try:
+            response_json = await client_response.json(content_type=None)
+            return response_json
+        except decoder.JSONDecodeError:
+            _LOGGER.error("Failed to parse JSON!")
+            response_text = await client_response.text()
+            if not client_response.ok:
+                responseError = ClientResponseError(
+                    client_response.request_info,
+                    client_response.history,
+                    status=client_response.status,
+                    message=(
+                        "" if client_response.reason is None else client_response.reason
+                    ),
+                    headers=client_response.headers,
+                )
+                raise LoginError(
+                    f"Error during login. {responseError!r}. Response body: ({response_text})"
+                )
+            raise LoginError(
+                f"Error during login. Status OK, but response not JSON. ResponseStatus: {client_response.status}, url: {client_response.request_info.real_url}, headers: {client_response.headers!r}, response body: ({response_text})"
+            )
+
     async def get_ids(self):
         # https://socialize.eu1.gigya.com/socialize.getIDs
         _LOGGER.debug("get_ids()")
@@ -155,10 +189,10 @@ class GigyaClient:
                 response.status,
                 response.headers,
             )
-            response_json = await response.json(content_type=None)
+            response_json = await self.try_parse_json_from_response(response)
             _LOGGER.debug(
                 "get_ids(), response, json: %s",
-                jsonstringify(response_json),
+                response_json,
             )
             response.raise_for_status()
             data: SocializeGetIdsResponse = response_json
@@ -192,22 +226,13 @@ class GigyaClient:
                 response.status,
                 response.headers,
             )
-            response_json = await response.json(content_type=None)
+            response_json = await self.try_parse_json_from_response(response)
             _LOGGER.debug(
                 "login_session(), response, json: %s",
-                jsonstringify(response_json),
+                response_json,
             )
             response.raise_for_status()
             data: LoginResponse = response_json
-            try:
-                if data["errorCode"] > 0:
-                    error_code = data["errorCode"]
-                    error_details = data["errorDetails"]
-                    raise LoginError(
-                        f"Error during login: Code {error_code} ({error_details})"
-                    )
-            except KeyError:
-                raise LoginError("Unknown error during login")
             return data
 
     async def get_JWT(
@@ -242,7 +267,7 @@ class GigyaClient:
                 response.status,
                 response.headers,
             )
-            response_json = await response.json(content_type=None)
+            response_json = await self.try_parse_json_from_response(response)
             _LOGGER.debug(
                 "get_JWT(), response, json: %s",
                 jsonstringify(response_json),
