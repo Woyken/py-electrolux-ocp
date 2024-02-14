@@ -137,7 +137,7 @@ class GigyaClient:
         # https://socialize.eu1.gigya.com/socialize.getIDs
         _LOGGER.debug("get_ids()")
         url = f"https://socialize.{self._domain}/socialize.getIDs"
-        async with await self._get_session().get(
+        async with await self._get_session().post(
             url,
             data={
                 "apiKey": self._api_key,
