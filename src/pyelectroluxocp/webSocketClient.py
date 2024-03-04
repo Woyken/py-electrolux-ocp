@@ -1,9 +1,13 @@
 import asyncio
+from json import dumps
+import logging
 from types import TracebackType
 from typing import Any, Callable, Optional, Type
 from aiohttp import ClientError, ClientSession, ClientWebSocketResponse, WSMsgType
 
 from .apiModels import WebSocketResponse
+
+_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("WebSocketClient")
 
 
 class WebSocketClient:
@@ -49,8 +53,10 @@ class WebSocketClient:
         await self._connect(headers)
 
     async def _connect(self, headers: dict[str, Any]):
+        _LOGGER.debug("_connect(), headers: %s", dumps(headers))
         self.retry = True
         while self.retry:
+            _LOGGER.debug("_connect(), while.connect()")
             try:
                 async with self._get_session().ws_connect(
                     self._url,
@@ -65,16 +71,20 @@ class WebSocketClient:
 
                     # Block until connection closes
                     await self.handle_messages(ws)
-            except ClientError:
+            except ClientError as error:
+                _LOGGER.error("_connect(), ClientError: %s", error)
                 # Connection dropped, retry in couple of seconds
                 await asyncio.sleep(self.retry_interval)
-            except Exception:
+            except Exception as error:
+                _LOGGER.debug("_connect(), Exception: %s", error)
                 # Unknown error
                 await asyncio.sleep(self.retry_interval * 5)
+        _LOGGER.debug("_connect(), ENDED")
 
     async def handle_messages(self, ws: ClientWebSocketResponse):
         try:
             async for msg in ws:
+                _LOGGER.debug("handle_messages(), msg: %s", msg)
                 if msg.type in (WSMsgType.CLOSE, WSMsgType.CLOSED, WSMsgType.CLOSING):
                     break
                 if msg.type == WSMsgType.ERROR:
@@ -82,9 +92,11 @@ class WebSocketClient:
 
                 if msg.type == WSMsgType.TEXT:
                     parsed_message: WebSocketResponse = msg.json()
+                    _LOGGER.debug("handle_messages(), msg.json(): %s", parsed_message)
                     for handler in self.event_handlers:
                         self.event_loop.call_soon(handler, parsed_message)
         finally:
+            _LOGGER.debug("handle_messages(), finally")
             await ws.close()
             # Inform listeners about socket close event
             for handler in self.event_websocket_disconnected_handlers:
