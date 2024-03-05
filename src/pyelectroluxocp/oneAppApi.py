@@ -22,7 +22,7 @@ class OneAppApi:
     _user_token: Optional[UserToken] = None
     _identity_providers: Optional[list[AuthResponse]] = None
     _shutdown_complete_event: Optional[asyncio.Event] = None
-    _running_tasks: set[asyncio.Task] = set()
+    _running_tasks: set[asyncio.Task[None]] = set()
 
     def __init__(
         self,
@@ -53,17 +53,25 @@ class OneAppApi:
 
     async def connect_websocket(self, appliance_ids: list[str]):
         """Start websocket connection, listen to events"""
-        token = await self._get_formatted_user_token()
-        headers = {
-            "Authorization": token,
-            "appliances": dumps(
-                [{"applianceId": appliance_id} for appliance_id in appliance_ids]
-            ),
-            "version": "2",
-        }
+
+        async def get_websocket_headers():
+            token = await self._get_formatted_user_token()
+            headers = {
+                "Authorization": token,
+                "appliances": dumps(
+                    [{"applianceId": appliance_id} for appliance_id in appliance_ids]
+                ),
+                "version": "2",
+            }
+            _LOGGER.debug(
+                "connect_websocket().get_websocket_headers(), headers: %s",
+                dumps(headers),
+            )
+            return headers
+
         ws_client = await self._get_websocket_client()
-        _LOGGER.debug("connect_websocket(), headers: %s", dumps(headers))
-        task = asyncio.create_task(ws_client.connect(headers))
+        _LOGGER.debug("connect_websocket()")
+        task = asyncio.create_task(ws_client.connect(get_websocket_headers))
         self._running_tasks.add(task)
         task.add_done_callback(self._running_tasks.discard)
 

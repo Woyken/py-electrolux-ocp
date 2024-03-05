@@ -1,8 +1,7 @@
 import asyncio
-from json import dumps
 import logging
 from types import TracebackType
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Coroutine, Optional, Type
 from aiohttp import ClientError, ClientSession, ClientWebSocketResponse, WSMsgType
 
 from .apiModels import WebSocketResponse
@@ -21,8 +20,8 @@ class WebSocketClient:
         self.heartbeat_interval = 5 * 60  # 5 minutes
         self.event_loop = asyncio.get_event_loop()
         self.event_handlers: set[Callable[[WebSocketResponse], None]] = set()
-        self.event_websocket_connected_handlers: set[Callable] = set()
-        self.event_websocket_disconnected_handlers: set[Callable] = set()
+        self.event_websocket_connected_handlers: set[Callable[[], None]] = set()
+        self.event_websocket_disconnected_handlers: set[Callable[[], None]] = set()
 
     def _get_session(self):
         if self._client_session is None:
@@ -36,27 +35,32 @@ class WebSocketClient:
     def remove_event_handler(self, handler: Callable[[WebSocketResponse], None]):
         self.event_handlers.discard(handler)
 
-    def add_connected_event_handler(self, handler: Callable):
+    def add_connected_event_handler(self, handler: Callable[[], None]):
         self.event_websocket_connected_handlers.add(handler)
 
-    def remove_connected_event_handler(self, handler: Callable):
+    def remove_connected_event_handler(self, handler: Callable[[], None]):
         self.event_websocket_connected_handlers.discard(handler)
 
-    def add_disconnected_event_handler(self, handler: Callable):
+    def add_disconnected_event_handler(self, handler: Callable[[], None]):
         self.event_websocket_disconnected_handlers.add(handler)
 
-    def remove_disconnected_event_handler(self, handler: Callable):
+    def remove_disconnected_event_handler(self, handler: Callable[[], None]):
         self.event_websocket_disconnected_handlers.discard(handler)
 
-    async def connect(self, headers: dict[str, Any]):
+    async def connect(
+        self, get_headers: Callable[[], Coroutine[Any, Any, dict[str, Any]]]
+    ):
         await self.disconnect()
-        await self._connect(headers)
+        await self._connect(get_headers)
 
-    async def _connect(self, headers: dict[str, Any]):
-        _LOGGER.debug("_connect(), headers: %s", dumps(headers))
+    async def _connect(
+        self, get_headers: Callable[[], Coroutine[Any, Any, dict[str, Any]]]
+    ):
+        _LOGGER.debug("_connect()")
         self.retry = True
         while self.retry:
-            _LOGGER.debug("_connect(), while.connect()")
+            headers = await get_headers()
+            _LOGGER.debug("_connect(), while.connect(), retry: %s", self.retry)
             try:
                 async with self._get_session().ws_connect(
                     self._url,
@@ -76,10 +80,10 @@ class WebSocketClient:
                 # Connection dropped, retry in couple of seconds
                 await asyncio.sleep(self.retry_interval)
             except Exception as error:
-                _LOGGER.debug("_connect(), Exception: %s", error)
+                _LOGGER.error("_connect(), Exception: %s", error)
                 # Unknown error
                 await asyncio.sleep(self.retry_interval * 5)
-        _LOGGER.debug("_connect(), ENDED")
+        _LOGGER.debug("_connect(), ENDED, retry: %s", self.retry)
 
     async def handle_messages(self, ws: ClientWebSocketResponse):
         try:
@@ -95,6 +99,7 @@ class WebSocketClient:
                     _LOGGER.debug("handle_messages(), msg.json(): %s", parsed_message)
                     for handler in self.event_handlers:
                         self.event_loop.call_soon(handler, parsed_message)
+            _LOGGER.debug("handle_messages(), loop ENDED")
         finally:
             _LOGGER.debug("handle_messages(), finally")
             await ws.close()
@@ -103,6 +108,7 @@ class WebSocketClient:
                 self.event_loop.call_soon(handler)
 
     async def disconnect(self):
+        _LOGGER.debug("disconnect()")
         self.retry = False
         if self.websocket is not None:
             await self.websocket.close()
