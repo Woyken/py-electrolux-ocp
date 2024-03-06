@@ -50,6 +50,7 @@ class WebSocketClient:
     async def connect(
         self, get_headers: Callable[[], Coroutine[Any, Any, dict[str, Any]]]
     ):
+        _LOGGER.debug("connect()")
         await self.disconnect()
         await self._connect(get_headers)
 
@@ -114,6 +115,8 @@ class WebSocketClient:
             await self.websocket.close()
 
     async def close(self) -> None:
+        _LOGGER.debug("close()")
+        self.retry = False
         if self.websocket is not None:
             await self.websocket.close()
         if self._client_session and self._close_session:

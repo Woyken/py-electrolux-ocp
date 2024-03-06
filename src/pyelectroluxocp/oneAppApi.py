@@ -53,6 +53,7 @@ class OneAppApi:
 
     async def connect_websocket(self, appliance_ids: list[str]):
         """Start websocket connection, listen to events"""
+        _LOGGER.debug("connect_websocket(), appliance_ids: %s", dumps(appliance_ids))
 
         async def get_websocket_headers():
             token = await self._get_formatted_user_token()
@@ -79,6 +80,7 @@ class OneAppApi:
 
     async def disconnect_websocket(self):
         """Stop websocket connection"""
+        _LOGGER.debug("disconnect_websocket()")
         ws_client = await self._get_websocket_client()
         await ws_client.disconnect()
 
@@ -195,6 +197,10 @@ class OneAppApi:
         callback: Callable[[dict[str, Dict[str, Any]]], None],
     ):
         """Fetch current appliance state and watch for state changes"""
+        _LOGGER.debug(
+            "watch_for_appliance_state_updates(), appliance_ids: %s",
+            dumps(appliance_ids),
+        )
 
         def handle_websocket_response(responseData: WebSocketResponse):
             _LOGGER.debug(
@@ -305,6 +311,7 @@ class OneAppApi:
 
     async def close(self) -> None:
         """Dispose session and dependencies"""
+        _LOGGER.debug("close()")
         if self._gigya_client:
             await self._gigya_client.close()
         if self._ws_client:
