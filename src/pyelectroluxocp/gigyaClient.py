@@ -5,6 +5,7 @@ from types import TracebackType
 from typing import Optional, Type
 from urllib.parse import urlparse, quote_plus
 from aiohttp import ClientResponse, ClientResponseError, ClientSession
+from aiohttp_retry import RetryClient
 from json import decoder, dumps as jsonstringify
 import hmac
 from base64 import b64decode, b64encode
@@ -116,19 +117,21 @@ _LOGGER: logging.Logger = logging.getLogger(__package__).getChild("GigyaClient")
 
 
 class GigyaClient:
+    _retry_client: Optional[RetryClient] = None
+
     def __init__(
         self, domain: str, api_key: str, client_session: Optional[ClientSession] = None
     ) -> None:
         self._client_session = client_session
-        self._close_session = False
         self._domain = domain
         self._api_key = api_key
 
     def _get_session(self):
-        if self._client_session is None:
-            self._client_session = ClientSession()
-            self._close_session = True
-        return self._client_session
+        if self._retry_client is None:
+            self._retry_client = RetryClient(
+                self._client_session, _LOGGER.getChild("aiohttp_retry")
+            )
+        return self._retry_client
 
     def _generate_nonce(self):
         return f"{current_milli_time()}_{random.randrange(1000000000, 10000000000)}"
@@ -290,8 +293,8 @@ class GigyaClient:
         return jwt
 
     async def close(self):
-        if self._client_session and self._close_session:
-            await self._client_session.close()
+        if self._retry_client:
+            await self._retry_client.close()
 
     async def __aenter__(self):
         return self

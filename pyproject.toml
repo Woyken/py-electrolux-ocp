@@ -2,6 +2,7 @@
 name = "pyelectroluxocp"
 dependencies = [
   "aiohttp>=3.9.0",
+  "aiohttp-retry>=2.8.3",
 ]
 requires-python = ">=3.10"
 authors = [

@@ -5,6 +5,7 @@ import logging
 from types import TracebackType
 from typing import Any, Dict, Optional, Type
 from aiohttp import ClientSession
+from aiohttp_retry import RetryClient
 from pyelectroluxocp import __version__
 
 from .urls import (
@@ -61,15 +62,17 @@ _LOGGER: logging.Logger = logging.getLogger(__package__).getChild("OneAppApiClie
 
 
 class OneAppApiClient:
+    _retry_client: Optional[RetryClient] = None
+
     def __init__(self, client_session: Optional[ClientSession] = None) -> None:
         self._client_session = client_session
-        self._close_session = False
 
     def _get_session(self):
-        if self._client_session is None:
-            self._client_session = ClientSession()
-            self._close_session = True
-        return self._client_session
+        if self._retry_client is None:
+            self._retry_client = RetryClient(
+                self._client_session, _LOGGER.getChild("aiohttp_retry")
+            )
+        return self._retry_client
 
     def _api_headers_base(self, token: Optional[str]):
         headers = {"x-api-key": API_KEY_ELECTROLUX}
@@ -353,8 +356,8 @@ class OneAppApiClient:
             return
 
     async def close(self) -> None:
-        if self._client_session and self._close_session:
-            await self._client_session.close()
+        if self._retry_client:
+            await self._retry_client.close()
 
     async def __aenter__(self):
         return self
