@@ -60,9 +60,9 @@ class WebSocketClient:
         _LOGGER.debug("_connect()")
         self.retry = True
         while self.retry:
-            headers = await get_headers()
-            _LOGGER.debug("_connect(), while.connect(), retry: %s", self.retry)
             try:
+                headers = await get_headers()
+                _LOGGER.debug("_connect(), while.connect(), retry: %s", self.retry)
                 async with self._get_session().ws_connect(
                     self._url,
                     headers=headers,
