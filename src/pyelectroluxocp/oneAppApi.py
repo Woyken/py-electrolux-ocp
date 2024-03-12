@@ -11,8 +11,6 @@ from .gigyaClient import GigyaClient
 from .apiModels import AuthResponse, WebSocketResponse
 import logging
 
-_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("OneAppApi")
-
 
 class OneAppApi:
     _regional_websocket_base_url: Optional[str] = None
@@ -29,12 +27,19 @@ class OneAppApi:
         username: str,
         password: str,
         client_session: Optional[ClientSession] = None,
+        logger: Optional[logging.Logger] = None,
     ) -> None:
         self._username = username
         self._password = password
         self._client_session = client_session
         self._close_session = False
-        self._api_client = OneAppApiClient(client_session)
+        self._package_root_logger = (
+            logger.getChild(__package__) if logger else logging.getLogger(__package__)
+        )
+        self._api_client = OneAppApiClient(
+            client_session, logger=self._package_root_logger
+        )
+        self._LOGGER = self._package_root_logger.getChild("OneAppApi")
 
     async def get_client_cred_token(self):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
@@ -42,10 +47,10 @@ class OneAppApi:
             self._client_cred_token is not None
             and not self._client_cred_token.should_renew()
         ):
-            _LOGGER.debug("get_client_cred_token(), still valid token")
+            self._LOGGER.debug("get_client_cred_token(), still valid token")
             return self._client_cred_token
 
-        _LOGGER.debug("get_client_cred_token(), need to refresh token")
+        self._LOGGER.debug("get_client_cred_token(), need to refresh token")
         base_url = await self._get_base_url()
         token = await self._api_client.login_client_credentials(base_url)
         self._client_cred_token = token
@@ -53,7 +58,9 @@ class OneAppApi:
 
     async def connect_websocket(self, appliance_ids: list[str]):
         """Start websocket connection, listen to events"""
-        _LOGGER.debug("connect_websocket(), appliance_ids: %s", dumps(appliance_ids))
+        self._LOGGER.debug(
+            "connect_websocket(), appliance_ids: %s", dumps(appliance_ids)
+        )
 
         async def get_websocket_headers():
             token = await self._get_formatted_user_token()
@@ -64,14 +71,14 @@ class OneAppApi:
                 ),
                 "version": "2",
             }
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "connect_websocket().get_websocket_headers(), headers: %s",
                 dumps(headers),
             )
             return headers
 
         ws_client = await self._get_websocket_client()
-        _LOGGER.debug("connect_websocket()")
+        self._LOGGER.debug("connect_websocket()")
         task = asyncio.create_task(ws_client.connect(get_websocket_headers))
         self._running_tasks.add(task)
         task.add_done_callback(self._running_tasks.discard)
@@ -80,7 +87,7 @@ class OneAppApi:
 
     async def disconnect_websocket(self):
         """Stop websocket connection"""
-        _LOGGER.debug("disconnect_websocket()")
+        self._LOGGER.debug("disconnect_websocket()")
         ws_client = await self._get_websocket_client()
         await ws_client.disconnect()
 
@@ -101,7 +108,7 @@ class OneAppApi:
         """
         if self._user_token is not None:
             if not self._user_token.should_renew():
-                _LOGGER.debug(
+                self._LOGGER.debug(
                     "get_user_token(), return existing token, expiresAt: %s",
                     self._user_token.expiresAt,
                 )
@@ -126,7 +133,7 @@ class OneAppApi:
 
     async def get_user_metadata(self):
         """Get details about user and preferences"""
-        _LOGGER.debug("get_user_metadata()")
+        self._LOGGER.debug("get_user_metadata()")
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -135,7 +142,9 @@ class OneAppApi:
 
     async def get_appliances_list(self, include_metadata: bool = False):
         """Get list of all user's appliances"""
-        _LOGGER.debug("get_appliances_list(), include_metadata: %s", include_metadata)
+        self._LOGGER.debug(
+            "get_appliances_list(), include_metadata: %s", include_metadata
+        )
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -146,7 +155,7 @@ class OneAppApi:
 
     async def get_appliance_state(self, id: str, include_metadata: bool = False):
         """Get current state of appliance by id"""
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_appliance_state(), id: %s, include_metadata: %s",
             id,
             include_metadata,
@@ -161,7 +170,7 @@ class OneAppApi:
 
     async def get_appliance_capabilities(self, id: str):
         """Get appliance capabilities"""
-        _LOGGER.debug("get_appliance_capabilities(), id: %s", id)
+        self._LOGGER.debug("get_appliance_capabilities(), id: %s", id)
         token = await self._get_formatted_user_token()
         base_url = await self._get_base_url()
 
@@ -170,7 +179,7 @@ class OneAppApi:
 
     async def get_appliances_info(self, ids: list[str]):
         """Get multiple appliances info"""
-        _LOGGER.debug("get_appliances_info(), ids: %s", dumps(ids))
+        self._LOGGER.debug("get_appliances_info(), ids: %s", dumps(ids))
         token = await self._get_formatted_user_token()
         baseUrl = await self._get_base_url()
 
@@ -179,7 +188,7 @@ class OneAppApi:
 
     async def execute_appliance_command(self, id: str, command_data: Dict[str, Any]):
         """Execute command for appliance"""
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "execute_appliance_command(), id: %s, command_data: %s",
             id,
             dumps(command_data),
@@ -197,13 +206,13 @@ class OneAppApi:
         callback: Callable[[dict[str, Dict[str, Any]]], None],
     ):
         """Fetch current appliance state and watch for state changes"""
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "watch_for_appliance_state_updates(), appliance_ids: %s",
             dumps(appliance_ids),
         )
 
         def handle_websocket_response(responseData: WebSocketResponse):
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "watch_for_appliance_state_updates().handle_websocket_response, responseData: %s",
                 dumps(responseData),
             )
@@ -220,7 +229,7 @@ class OneAppApi:
                     callback(appliance_state_update_dict)
 
         def handle_disconnected_or_connected_event():
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "watch_for_appliance_state_updates().handle_disconnected_or_connected_event"
             )
 
@@ -311,7 +320,7 @@ class OneAppApi:
 
     async def close(self) -> None:
         """Dispose session and dependencies"""
-        _LOGGER.debug("close()")
+        self._LOGGER.debug("close()")
         if self._gigya_client:
             await self._gigya_client.close()
         if self._ws_client:
@@ -350,20 +359,20 @@ class OneAppApi:
 
     async def _get_base_url(self) -> str:
         if self._client_cred_token is None:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "_get_base_url(), client_cred is not set, return BASE_URL: %s",
                 BASE_URL,
             )
             return BASE_URL
         if self._identity_providers is None:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "_get_base_url(), _identity_providers is not set, return BASE_URL: %s",
                 BASE_URL,
             )
             return BASE_URL
 
         providers = await self._get_identity_providers()
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "_get_base_url(), getting identity providers, return first result.httpRegionalBaseUrl: %s",
             providers[0]["httpRegionalBaseUrl"],
         )
@@ -380,7 +389,10 @@ class OneAppApi:
             return self._gigya_client
         data = await self._get_identity_providers()
         gigya_client = GigyaClient(
-            data[0]["domain"], data[0]["apiKey"], self._get_session()
+            data[0]["domain"],
+            data[0]["apiKey"],
+            self._get_session(),
+            logger=self._package_root_logger,
         )
         self._gigya_client = gigya_client
         return gigya_client
@@ -390,7 +402,9 @@ class OneAppApi:
             return self._ws_client
 
         url = await self._get_regional_websocket_base_url()
-        ws_client = WebSocketClient(url, self._get_session())
+        ws_client = WebSocketClient(
+            url, self._get_session(), logger=self._package_root_logger
+        )
         self._ws_client = ws_client
         return ws_client
 

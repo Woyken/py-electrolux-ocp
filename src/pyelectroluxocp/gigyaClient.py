@@ -113,23 +113,26 @@ def getOAuth1Signature(
     return calcSignature(base_string, secret_key)
 
 
-_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("GigyaClient")
-
-
 class GigyaClient:
     _retry_client: Optional[RetryClient] = None
 
     def __init__(
-        self, domain: str, api_key: str, client_session: Optional[ClientSession] = None
+        self,
+        domain: str,
+        api_key: str,
+        client_session: Optional[ClientSession] = None,
+        logger: Optional[logging.Logger] = None,
     ) -> None:
         self._client_session = client_session
         self._domain = domain
         self._api_key = api_key
+        package_root_logger = logger if logger else logging.getLogger(__package__)
+        self._LOGGER = package_root_logger.getChild("GigyaClient")
 
     def _get_session(self):
         if self._retry_client is None:
             self._retry_client = RetryClient(
-                self._client_session, _LOGGER.getChild("aiohttp_retry")
+                self._client_session, self._LOGGER.getChild("aiohttp_retry")
             )
         return self._retry_client
 
@@ -141,7 +144,7 @@ class GigyaClient:
             client_response.content_length is None
             or client_response.content_length <= 0
         ):
-            _LOGGER.error("Empty response received!")
+            self._LOGGER.error("Empty response received!")
             client_response.raise_for_status()
             raise LoginError(
                 f"Error during login. Empty response body. ResponseStatus: {client_response.status}"
@@ -151,7 +154,7 @@ class GigyaClient:
             response_json = await client_response.json(content_type=None)
             return response_json
         except decoder.JSONDecodeError:
-            _LOGGER.error("Failed to parse JSON!")
+            self._LOGGER.error("Failed to parse JSON!")
             response_text = await client_response.text()
             if not client_response.ok:
                 responseError = ClientResponseError(
@@ -172,7 +175,7 @@ class GigyaClient:
 
     async def get_ids(self):
         # https://socialize.eu1.gigya.com/socialize.getIDs
-        _LOGGER.debug("get_ids()")
+        self._LOGGER.debug("get_ids()")
         url = f"https://socialize.{self._domain}/socialize.getIDs"
         async with await self._get_session().post(
             url,
@@ -185,7 +188,7 @@ class GigyaClient:
                 "targetEnv": "mobile",
             },
         ) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_ids(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -193,7 +196,7 @@ class GigyaClient:
                 response.headers,
             )
             response_json = await self.try_parse_json_from_response(response)
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_ids(), response, json: %s",
                 response_json,
             )
@@ -203,7 +206,7 @@ class GigyaClient:
 
     async def login_session(self, username: str, password: str, gmid: str, ucid: str):
         # https://accounts.eu1.gigya.com/accounts.login
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "login_session(), username: %s, gmid: %s, ucid: %s", username, gmid, ucid
         )
         url = f"https://accounts.{self._domain}/accounts.login"
@@ -222,7 +225,7 @@ class GigyaClient:
                 "ucid": ucid,
             },
         ) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "login_session(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -230,7 +233,7 @@ class GigyaClient:
                 response.headers,
             )
             response_json = await self.try_parse_json_from_response(response)
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "login_session(), response, json: %s",
                 response_json,
             )
@@ -242,7 +245,7 @@ class GigyaClient:
         self, session_token: str, session_secret: str, gmid: str, ucid: str
     ):
         # https://accounts.eu1.gigya.com/accounts.getJWT
-        _LOGGER.debug("get_JWT(), gmid: %s, ucid: %s", gmid, ucid)
+        self._LOGGER.debug("get_JWT(), gmid: %s, ucid: %s", gmid, ucid)
         url = f"https://accounts.{self._domain}/accounts.getJWT"
 
         data_params = {
@@ -263,7 +266,7 @@ class GigyaClient:
         )
 
         async with await self._get_session().post(url, data=data_params) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_JWT(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -271,7 +274,7 @@ class GigyaClient:
                 response.headers,
             )
             response_json = await self.try_parse_json_from_response(response)
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_JWT(), response, json: %s",
                 jsonstringify(response_json),
             )

@@ -58,19 +58,22 @@ def decodeJwt(token: str):
     return payload
 
 
-_LOGGER: logging.Logger = logging.getLogger(__package__).getChild("OneAppApiClient")
-
-
 class OneAppApiClient:
     _retry_client: Optional[RetryClient] = None
 
-    def __init__(self, client_session: Optional[ClientSession] = None) -> None:
+    def __init__(
+        self,
+        client_session: Optional[ClientSession] = None,
+        logger: Optional[logging.Logger] = None,
+    ) -> None:
         self._client_session = client_session
+        package_root_logger = logger if logger else logging.getLogger(__package__)
+        self._LOGGER = package_root_logger.getChild("OneAppApiClient")
 
     def _get_session(self):
         if self._retry_client is None:
             self._retry_client = RetryClient(
-                self._client_session, _LOGGER.getChild("aiohttp_retry")
+                self._client_session, self._LOGGER.getChild("aiohttp_retry")
             )
         return self._retry_client
 
@@ -86,7 +89,7 @@ class OneAppApiClient:
 
     async def login_client_credentials(self, base_url: str):
         """Login using client credentials of the mobile application, used for fetching identity providers urls"""
-        _LOGGER.debug("login_client_credentials(), base_url: %s", base_url)
+        self._LOGGER.debug("login_client_credentials(), base_url: %s", base_url)
         req_params = token_url(
             base_url,
             self._api_headers_base(None),
@@ -95,7 +98,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "login_client_credentials(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -103,7 +106,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "login_client_credentials(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -112,7 +115,7 @@ class OneAppApiClient:
 
     async def exchange_login_user(self, base_url: str, id_token: str):
         """Exchange external id token to api token"""
-        _LOGGER.debug("exchange_login_user(), base_url: %s", base_url)
+        self._LOGGER.debug("exchange_login_user(), base_url: %s", base_url)
         decodedToken = decodeJwt(id_token)
         req_params = token_url(
             base_url,
@@ -125,7 +128,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "exchange_login_user(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -133,7 +136,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "exchange_login_user(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -141,7 +144,7 @@ class OneAppApiClient:
             return UserToken(token)
 
     async def refresh_token_user(self, base_url: str, refresh_token: str):
-        _LOGGER.debug("refresh_token_user(), base_url: %s", base_url)
+        self._LOGGER.debug("refresh_token_user(), base_url: %s", base_url)
         req_params = token_url(
             base_url,
             self._api_headers_base(None),
@@ -150,7 +153,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "refresh_token_user(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -158,7 +161,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "refresh_token_user(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -168,7 +171,7 @@ class OneAppApiClient:
     async def get_identity_providers(
         self, base_url: str, client_cred_token: str, username: str
     ):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_identity_providers(), base_url: %s, username: %s", base_url, username
         )
         req_params = identity_providers_url(
@@ -182,7 +185,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_identity_providers(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -190,7 +193,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_identity_providers(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -198,11 +201,11 @@ class OneAppApiClient:
             return data
 
     async def get_user_metadata(self, base_url: str, token: str):
-        _LOGGER.debug("get_user_metadata(), base_url: %s", base_url)
+        self._LOGGER.debug("get_user_metadata(), base_url: %s", base_url)
         req_params = current_user_metadata_url(base_url, self._api_headers_base(token))
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_user_metadata(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -210,7 +213,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_user_metadata(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -220,7 +223,7 @@ class OneAppApiClient:
     async def get_appliances_list(
         self, base_url: str, token: str, include_metadata: bool
     ):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_appliances_list(), base_url: %s, include_metadata: %s",
             base_url,
             include_metadata,
@@ -230,7 +233,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliances_list(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -238,7 +241,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliances_list(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -248,7 +251,7 @@ class OneAppApiClient:
     async def get_appliance_state(
         self, base_url: str, token: str, id: str, include_metadata: bool
     ):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_appliance_status(), base_url: %s, id: %s, include_metadata: %s",
             base_url,
             id,
@@ -262,7 +265,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliance_status(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -270,7 +273,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliance_status(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -278,7 +281,7 @@ class OneAppApiClient:
             return data
 
     async def get_appliance_capabilities(self, base_url: str, token: str, id: str):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_appliance_capabilities(), base_url: %s, id: %s", base_url, id
         )
         req_params = get_appliance_capabilities_url(
@@ -286,7 +289,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliance_capabilities(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -294,7 +297,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliance_capabilities(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -302,7 +305,7 @@ class OneAppApiClient:
             return data
 
     async def get_appliances_info(self, base_url: str, token: str, ids: list[str]):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "get_appliances_info(), base_url: %s, ids: %s", base_url, dumps(ids)
         )
         req_params = get_appliances_info_by_ids_url(
@@ -312,7 +315,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliances_info(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
@@ -320,7 +323,7 @@ class OneAppApiClient:
                 response.headers,
             )
             response_json = await response.json()
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "get_appliances_info(), response, json: %s", dumps(response_json)
             )
             response.raise_for_status()
@@ -330,7 +333,7 @@ class OneAppApiClient:
     async def execute_appliance_command(
         self, base_url: str, token: str, id: str, command_data: Dict[str, Any]
     ):
-        _LOGGER.debug(
+        self._LOGGER.debug(
             "execute_appliance_command(), base_url: %s, id: %s, command_data: %s",
             base_url,
             id,
@@ -344,7 +347,7 @@ class OneAppApiClient:
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
-            _LOGGER.debug(
+            self._LOGGER.debug(
                 "execute_appliance_command(), response, requestUlr: %s, requestHeaders: %s, responseStatus: %i, responseHeaders: %s",
                 response.request_info.url,
                 response.request_info.headers,
