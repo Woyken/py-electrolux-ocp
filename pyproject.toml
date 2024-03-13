@@ -1,19 +1,11 @@
-[project]
+[tool.poetry]
 name = "pyelectroluxocp"
-dependencies = [
-  "aiohttp>=3.9.0",
-  "aiohttp-retry>=2.8.3",
-]
-requires-python = ">=3.10"
-authors = [
-  {name = "Woyken"},
-]
-maintainers = [
-  {name = "Woyken"},
-]
+version = "0.0.17"
+authors = ["Woyken"]
+maintainers = ["Woyken"]
 description = "Electrolux OneApp OCP API"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
 keywords = ["home", "automation", "electrolux", "aeg", "ocp", "oneapp", "api"]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -24,18 +16,23 @@ classifiers = [
   "Topic :: Home Automation",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-dynamic = ["version"]
 
-[project.urls]
+[tool.poetry.urls]
 Homepage = "https://github.com/Woyken/py-electrolux-ocp/"
 Documentation = "https://github.com/Woyken/py-electrolux-ocp/blob/main/README.md"
 Repository = "https://github.com/Woyken/py-electrolux-ocp.git"
 "Bug Tracker" = "https://github.com/Woyken/py-electrolux-ocp/issues"
 Changelog = "https://github.com/Woyken/py-electrolux-ocp/releases/"
 
-[tool.setuptools.dynamic]
-version = {attr = "pyelectroluxocp.__version__"}
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.9.3"
+aiohttp-retry = "^2.8.3"
+
+[tool.poetry.group.dev.dependencies]
+commitizen = "^3.18.3"
+pre-commit = "^3.6.2"
 
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
