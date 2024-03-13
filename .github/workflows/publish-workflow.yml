@@ -4,7 +4,7 @@ on: push
 
 concurrency:
   group: publish to PyPi
-  
+
 jobs:
   build:
     name: Build distribution 📦
@@ -13,17 +13,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: "3.x"
     - name: Install pypa/build
-      run: >-
-        python3 -m
-        pip install
-        build
-        --user
+      run: |
+        python -m pip install -U pip poetry
+        poetry --version
+        poetry install
     - name: Build a binary wheel and a source tarball
-      run: python3 -m build
+      run: poetry build
     - name: Store the distribution packages
       uses: actions/upload-artifact@v3
       with:
