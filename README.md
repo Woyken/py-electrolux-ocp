@@ -7,7 +7,6 @@ Early version, this package APIs might change
 ## Prerequisites
 
 ```
-pip install aiohttp
 pip install pyelectroluxocp
 ```
 

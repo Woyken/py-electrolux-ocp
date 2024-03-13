@@ -6,5 +6,8 @@
     "python.analysis.autoImportCompletions": true,
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
-    "python.analysis.typeCheckingMode": "strict"
+    "python.analysis.typeCheckingMode": "strict",
+    "conventionalCommits.scopes": [
+        "Readme"
+    ]
 }
