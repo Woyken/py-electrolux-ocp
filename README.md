@@ -1,5 +1,12 @@
 # py-electrolux-ocp
 
+## New details on API
+
+Looks like electrolux finally opened their api, will be rewriting this wrapper to reference their api directly (remove reverse engineered api)
+<https://developer.electrolux.one/documentation/reference>
+
+## What is this
+
 Python package wrapper around Electrolux OneApp (OCP) api
 
 Early version, this package APIs might change
