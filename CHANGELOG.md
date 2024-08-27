@@ -1,3 +1,9 @@
+## 0.0.19 (2024-08-27)
+
+### Fix
+
+- :bug: Remove importing `__version__` variabled which was removed previously
+
 ## 0.0.18 (2024-03-13)
 
 ### Fix
