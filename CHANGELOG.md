@@ -1,3 +1,9 @@
+## 0.1.2 (2025-05-05)
+
+### Fix
+
+- Update download-artifact@v4
+
 ## 0.1.1 (2025-05-05)
 
 ### Fix
