@@ -1,3 +1,46 @@
+[tool.poetry]
+name = "pyelectroluxocp"
+version = "0.1.1"
+authors = ["Woyken"]
+maintainers = ["Woyken"]
+description = "Electrolux OneApp OCP API"
+readme = "README.md"
+license = "MIT"
+keywords = ["home", "automation", "electrolux", "aeg", "ocp", "oneapp", "api"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.10",
+  "Topic :: Home Automation",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[tool.poetry.urls]
+Homepage = "https://github.com/Woyken/py-electrolux-ocp/"
+Documentation = "https://github.com/Woyken/py-electrolux-ocp/blob/main/README.md"
+Repository = "https://github.com/Woyken/py-electrolux-ocp.git"
+"Bug Tracker" = "https://github.com/Woyken/py-electrolux-ocp/issues"
+Changelog = "https://github.com/Woyken/py-electrolux-ocp/releases/"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiohttp = "^3.9.3"
+aiohttp-retry = "^2.8.3"
+
+[tool.poetry.group.dev.dependencies]
+commitizen = "^3.18.3"
+pre-commit = "^3.6.2"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+version_scheme = "semver"
+version_provider = "poetry"
+update_changelog_on_bump = true
+major_version_zero = true
+
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

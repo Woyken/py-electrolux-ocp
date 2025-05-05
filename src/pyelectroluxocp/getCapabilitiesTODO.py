@@ -258,9 +258,9 @@ async def main():
     capabilities = await client.get_appliance_capabilities(
         appliances[0].get("applianceId")
     )
-    status = await client.get_appliance_status(appliances[0].get("applianceId"), False)
-    # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaa", json.dumps(status))
-    print(json.dumps(parse_capabilities(capabilities, status)))
+    state = await client.get_appliance_state(appliances[0].get("applianceId"), False)
+    # print("aaaaaaaaaaaaaaaaaaaaaaaaaaaa", json.dumps(state))
+    print(json.dumps(parse_capabilities(capabilities, state)))
 
 
 asyncio.run(main())
