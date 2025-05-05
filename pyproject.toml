@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyelectroluxocp"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Woyken"]
 maintainers = ["Woyken"]
 description = "Electrolux OneApp OCP API"

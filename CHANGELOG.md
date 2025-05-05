@@ -1,3 +1,9 @@
+## 0.1.1 (2025-05-05)
+
+### Fix
+
+- :bug: changed wrong user metadata url
+
 ## 0.1.0 (2025-05-05)
 
 ### Fix
