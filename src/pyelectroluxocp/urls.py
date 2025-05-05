@@ -73,7 +73,7 @@ def current_user_metadata_url(base_url: str, headers: dict[str, str]):
     # https://api.ocp.electrolux.one/one-account-user/api/v1/users/current
     return RequestParams(
         "GET",
-        urljoin(base_url, "one-account-user/api/v1/identity-providers"),
+        urljoin(base_url, "one-account-user/api/v1/users/current"),
         None,
         headers,
         None,
