@@ -1,3 +1,9 @@
+## 0.1.0 (2025-05-05)
+
+### Fix
+
+- :ambulance: Add `country_code` parameter for api client
+
 ## 0.0.19 (2024-08-27)
 
 ### Fix
