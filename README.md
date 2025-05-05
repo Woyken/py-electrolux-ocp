@@ -26,7 +26,7 @@ import json
 from pyelectroluxocp import OneAppApi
 
 async def main():
-    async with OneAppApi("__username__", "__password__") as client:
+    async with OneAppApi("__username__", "__password__", "fr") as client:
         appliances = await client.get_appliances_list()
 
         print("appliances found: ", json.dumps([x.get("applianceData").get("applianceName")+" "+x.get("applianceId") for x in appliances]))

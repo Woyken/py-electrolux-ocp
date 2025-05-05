@@ -57,13 +57,13 @@ def token_url(
 
 
 def identity_providers_url(
-    base_url: str, headers: dict[str, str], brand: str, username: str
+    base_url: str, headers: dict[str, str], brand: str, countryCode: str
 ):
-    # https://api.ocp.electrolux.one/one-account-user/api/v1/identity-providers?brand=electrolux&email={{username}}
+    # https://api.ocp.electrolux.one/one-account-user/api/v1/identity-providers?brand=electrolux&countryCode=fr
     return RequestParams(
         "GET",
         urljoin(base_url, "one-account-user/api/v1/identity-providers"),
-        {"brand": brand, "email": username},
+        {"brand": brand, "countryCode": countryCode},
         headers,
         None,
     )

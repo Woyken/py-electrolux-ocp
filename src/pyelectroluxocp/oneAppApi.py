@@ -26,15 +26,19 @@ class OneAppApi:
         self,
         username: str,
         password: str,
+        country_code_2_letters: str,
         client_session: Optional[ClientSession] = None,
         logger: Optional[logging.Logger] = None,
     ) -> None:
         self._username = username
         self._password = password
+        self._country_code = country_code_2_letters
         self._client_session = client_session
         self._close_session = False
         self._package_root_logger = (
-            logger.getChild(__package__) if logger else logging.getLogger(__package__)
+            logger.getChild(__package__)
+            if logger and __package__
+            else logging.getLogger(__package__)
         )
         self._api_client = OneAppApiClient(
             client_session, logger=self._package_root_logger
@@ -352,7 +356,7 @@ class OneAppApi:
         token = await self._get_formatted_client_cred_token()
 
         providers = await self._api_client.get_identity_providers(
-            baseUrl, token, self._username
+            baseUrl, token, self._country_code
         )
         self._identity_providers = providers
         return providers

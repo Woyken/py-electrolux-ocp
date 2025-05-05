@@ -171,10 +171,12 @@ class OneAppApiClient:
             return UserToken(newToken)
 
     async def get_identity_providers(
-        self, base_url: str, client_cred_token: str, username: str
+        self, base_url: str, client_cred_token: str, countryCode: str
     ):
         self._LOGGER.debug(
-            "get_identity_providers(), base_url: %s, username: %s", base_url, username
+            "get_identity_providers(), base_url: %s, username: %s",
+            base_url,
+            countryCode,
         )
         req_params = identity_providers_url(
             base_url,
@@ -183,7 +185,7 @@ class OneAppApiClient:
                 "Authorization": client_cred_token,
             },
             BRAND_ELECTROLUX,
-            username,
+            countryCode,
         )
 
         async with await self._get_session().request(**req_params.__dict__) as response:
