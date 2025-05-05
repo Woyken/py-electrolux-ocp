@@ -1,3 +1,10 @@
+## 0.1.3 (2025-05-05)
+
+### Fix
+
+- **deps**: update dependency aiohttp to v3.11.18
+- **deps**: update dependency aiohttp-retry to v2.9.1
+
 ## 0.1.2 (2025-05-05)
 
 ### Fix
