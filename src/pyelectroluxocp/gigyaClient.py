@@ -1,16 +1,18 @@
+import hmac
 import logging
 import random
 import time
-from types import TracebackType
-from typing import Optional, Type
-from urllib.parse import urlparse, quote_plus
-from aiohttp import ClientResponse, ClientResponseError, ClientSession
-from aiohttp_retry import RetryClient
-from json import decoder, dumps as jsonstringify
-import hmac
 from base64 import b64decode, b64encode
 from hashlib import sha1
+from json import decoder
+from json import dumps as jsonstringify
 from math import floor
+from types import TracebackType
+from typing import Optional, Type
+from urllib.parse import quote_plus, urlparse
+
+from aiohttp import ClientResponse, ClientResponseError, ClientSession
+from aiohttp_retry import RetryClient
 
 from .gigyaModels import GetJWTResponse, LoginResponse, SocializeGetIdsResponse
 

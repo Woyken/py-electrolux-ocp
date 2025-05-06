@@ -1,15 +1,16 @@
 import asyncio
+import logging
 from json import dump, dumps
 from types import TracebackType
 from typing import Any, Callable, Dict, Optional, Type
+
 from aiohttp import ClientSession
 
-from .oneAppApiClient import ClientToken, OneAppApiClient, UserToken
-from .const import BASE_URL, BASE_WEBSOCKET_URL
-from .webSocketClient import WebSocketClient
-from .gigyaClient import GigyaClient
 from .apiModels import AuthResponse, WebSocketResponse
-import logging
+from .const import BASE_URL, BASE_WEBSOCKET_URL
+from .gigyaClient import GigyaClient
+from .oneAppApiClient import ClientToken, OneAppApiClient, UserToken
+from .webSocketClient import WebSocketClient
 
 
 class OneAppApi:
@@ -340,7 +341,7 @@ class OneAppApi:
 
     async def _get_formatted_client_cred_token(self):
         client_cred_token = await self.get_client_cred_token()
-        return f'{client_cred_token.token["tokenType"]} {client_cred_token.token["accessToken"]}'
+        return f"{client_cred_token.token['tokenType']} {client_cred_token.token['accessToken']}"
 
     def _get_session(self):
         if self._client_session is None:
@@ -414,7 +415,7 @@ class OneAppApi:
 
     async def _get_formatted_user_token(self):
         token = await self.get_user_token()
-        return f'{token.token["tokenType"]} {token.token["accessToken"]}'
+        return f"{token.token['tokenType']} {token.token['accessToken']}"
 
     async def __aenter__(self):
         return self

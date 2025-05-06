@@ -2,6 +2,7 @@ import asyncio
 import logging
 from types import TracebackType
 from typing import Any, Callable, Coroutine, Optional, Type
+
 from aiohttp import ClientError, ClientSession, ClientWebSocketResponse, WSMsgType
 
 from .apiModels import WebSocketResponse

@@ -1,5 +1,6 @@
 from typing import Any, Dict, Mapping, Optional, Union
 from urllib.parse import quote_plus, urljoin
+
 from multidict import CIMultiDict, CIMultiDictProxy, istr
 
 from .const import CLIENT_ID_ELECTROLUX

@@ -1,15 +1,27 @@
+import importlib.metadata
+import logging
 from base64 import b64decode
 from datetime import datetime, timedelta
 from json import dumps, loads
-import logging
 from types import TracebackType
 from typing import Any, Dict, Optional, Type
+
 from aiohttp import ClientSession
 from aiohttp_retry import RetryClient
-import importlib.metadata
 
-version = importlib.metadata.version("pyelectroluxocp")
-
+from .apiModels import (
+    ApplianceInfoResponse,
+    ApplienceStatusResponse,
+    AuthResponse,
+    ClientCredTokenResponse,
+    UserMetadataResponse,
+    UserTokenResponse,
+)
+from .const import (
+    API_KEY_ELECTROLUX,
+    BRAND_ELECTROLUX,
+    CLIENT_SECRET_ELECTROLUX,
+)
 from .urls import (
     appliance_command_url,
     current_user_metadata_url,
@@ -20,19 +32,8 @@ from .urls import (
     list_appliances_url,
     token_url,
 )
-from .const import (
-    API_KEY_ELECTROLUX,
-    BRAND_ELECTROLUX,
-    CLIENT_SECRET_ELECTROLUX,
-)
-from .apiModels import (
-    ApplianceInfoResponse,
-    ApplienceStatusResponse,
-    AuthResponse,
-    ClientCredTokenResponse,
-    UserMetadataResponse,
-    UserTokenResponse,
-)
+
+version = importlib.metadata.version("pyelectroluxocp")
 
 
 class UserToken:
