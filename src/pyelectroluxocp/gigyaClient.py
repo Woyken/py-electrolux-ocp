@@ -69,7 +69,7 @@ def calcOAuth1BaseString(
         raise Exception("hostname is expected to always not be None")
     normalized_url += u.hostname.lower()
 
-    if port != None and (
+    if port is not None and (
         (protocol == "http" and port != 80) or (protocol == "https" and port != 443)
     ):
         normalized_url += ":" + str(port)
