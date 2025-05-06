@@ -4,7 +4,7 @@
     "python.terminal.activateEnvInCurrentTerminal": true,
     "python.terminal.activateEnvironment": true,
     "python.analysis.autoImportCompletions": true,
-    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.defaultFormatter": "charliermarsh.ruff",
     "editor.formatOnSave": true,
     "python.analysis.typeCheckingMode": "strict",
     "conventionalCommits.scopes": [
