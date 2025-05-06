@@ -30,7 +30,7 @@ aiohttp = "^3.9.3"
 aiohttp-retry = "^2.8.3"
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^3.18.3"
+commitizen = "^4.0.0"
 pre-commit = "^4.0.0"
 
 [tool.commitizen]
