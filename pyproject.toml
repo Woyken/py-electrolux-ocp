@@ -32,6 +32,8 @@ aiohttp-retry = "^2.8.3"
 [tool.poetry.group.dev.dependencies]
 commitizen = "^4.0.0"
 pre-commit = "^4.0.0"
+black = "^25.1.0"
+flake8 = "^7.2.0"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
