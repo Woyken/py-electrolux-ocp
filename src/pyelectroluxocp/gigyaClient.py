@@ -21,21 +21,19 @@ def current_milli_time():
     return round(time.time() * 1000)
 
 
-def UrlEncode(value):
-    if value is None:
-        return value
-    elif isinstance(value, int):
+def url_encode(value: str | bool | int):
+    if isinstance(value, int):
         return str(value)
+
+    if isinstance(value, dict) or isinstance(value, list):
+        str_value = jsonstringify(value)
     else:
-        if isinstance(value, dict) or isinstance(value, list):
-            str_value = jsonstringify(value)
-        else:
-            str_value = value.encode("utf-8")
+        str_value = value.encode("utf-8")
 
-        return quote_plus(str_value).replace("+", "%20").replace("%7E", "~")
+    return quote_plus(str_value).replace("+", "%20").replace("%7E", "~")
 
 
-def buildQS(params: dict):
+def build_qs(params: dict[str, str | bool | int]):
     """Converts a params dictionary to a sorted query string"""
     query_string = ""
     amp = ""
@@ -45,14 +43,17 @@ def buildQS(params: dict):
     for key in keys:
         value = params.get(key)
         if value is not None:
-            query_string += amp + key + "=" + UrlEncode(value)
+            query_string += amp + key + "=" + url_encode(value)
             amp = "&"
 
     return query_string
 
 
-def calcOAuth1BaseString(
-    http_method: str, url: str, is_secure_connection: bool, request_params: dict
+def calc_oauth1_base_string(
+    http_method: str,
+    url: str,
+    is_secure_connection: bool,
+    request_params: dict[str, str | bool | int],
 ):
     normalized_url = ""
     u = urlparse(url)
@@ -77,21 +78,21 @@ def calcOAuth1BaseString(
     normalized_url += u.path
 
     # Create a sorted list of query parameters
-    query_string = buildQS(request_params)
+    query_string = build_qs(request_params)
 
     # Construct the base string from the HTTP method, the URL and the parameters
     base_string = (
         http_method.upper()
         + "&"
-        + UrlEncode(normalized_url)
+        + url_encode(normalized_url)
         + "&"
-        + UrlEncode(query_string)
+        + url_encode(query_string)
     )
 
     return base_string
 
 
-def calcSignature(base_string: str, secret_key: str):
+def calc_signature(base_string: str, secret_key: str):
     encoded_base = base_string.encode("utf-8")
     encoded_key = secret_key.encode("utf-8")
     raw_hmac = hmac.new(b64decode(encoded_key), encoded_base, sha1).digest()
@@ -99,20 +100,20 @@ def calcSignature(base_string: str, secret_key: str):
     return signature.decode("utf-8")
 
 
-def getOAuth1Signature(
+def get_oauth1_signature(
     secret_key: str,
     http_method: str,
     url: str,
     is_secure_connection: bool,
-    request_params: dict,
+    request_params: dict[str, str | bool | int],
 ):
     # Taken from https://github.com/SAP/gigya-python-sdk/blob/main/GSSDK.py#L276
     # Create the BaseString.
-    base_string = calcOAuth1BaseString(
+    base_string = calc_oauth1_base_string(
         http_method, url, is_secure_connection, request_params
     )
 
-    return calcSignature(base_string, secret_key)
+    return calc_signature(base_string, secret_key)
 
 
 class GigyaClient:
@@ -155,7 +156,7 @@ class GigyaClient:
         try:
             response_json = await client_response.json(content_type=None)
             return response_json
-        except decoder.JSONDecodeError:
+        except decoder.JSONDecodeError as exc:
             self._LOGGER.error("Failed to parse JSON!")
             response_text = await client_response.text()
             if not client_response.ok:
@@ -170,10 +171,10 @@ class GigyaClient:
                 )
                 raise LoginError(
                     f"Error during login. {responseError!r}. Response body: ({response_text})"
-                )
+                ) from exc
             raise LoginError(
                 f"Error during login. Status OK, but response not JSON. ResponseStatus: {client_response.status}, url: {client_response.request_info.real_url}, headers: {client_response.headers!r}, response body: ({response_text})"
-            )
+            ) from exc
 
     async def get_ids(self):
         # https://socialize.eu1.gigya.com/socialize.getIDs
@@ -250,7 +251,7 @@ class GigyaClient:
         self._LOGGER.debug("get_JWT(), gmid: %s, ucid: %s", gmid, ucid)
         url = f"https://accounts.{self._domain}/accounts.getJWT"
 
-        data_params = {
+        data_params: dict[str, str | bool | int] = {
             "apiKey": self._api_key,
             "fields": "country",
             "format": "json",
@@ -263,7 +264,7 @@ class GigyaClient:
             "timestamp": floor(time.time()),
             "ucid": ucid,
         }
-        data_params["sig"] = getOAuth1Signature(
+        data_params["sig"] = get_oauth1_signature(
             session_secret, "POST", url, True, data_params
         )
 
