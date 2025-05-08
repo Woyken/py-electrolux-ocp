@@ -17,7 +17,7 @@
 	},
 
 	"initializeCommand": "git config -l --global --include | grep -v '^gpg\\.program' | grep -v '^core\\.editor' > ${localWorkspaceFolder}/.gitconfig.global",
-	"postCreateCommand": "poetry install",
+	"postCreateCommand": "poetry install && pipx run pre-commit install --hook-type commit-msg",
 	"postAttachCommand": "while IFS='=' read -r key value; do git config --global \"$key\" \"$value\"; done < ${containerWorkspaceFolder}/.gitconfig.global; rm -f ${containerWorkspaceFolder}/.gitconfig.global",
 
 	"features": {
