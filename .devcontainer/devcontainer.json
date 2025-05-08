@@ -1,11 +1,11 @@
 {
 	"name": "Python 3",
-	"image": "mcr.microsoft.com/devcontainers/python:3.12",
+	"image": "mcr.microsoft.com/devcontainers/python:3.13",
 
 	"customizations": {
 		"vscode": {
 			"settings": {
-				"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/pyelectroluxocp-Rx2kn-va-py3.12/bin/python"
+				"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/pyelectroluxocp-Rx2kn-va-py3.13/bin/python"
 			},
 			"extensions": [
 				"vivaxy.vscode-conventional-commits",

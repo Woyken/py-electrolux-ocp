@@ -12,7 +12,7 @@ classifiers = [
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Home Automation",
   "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -25,7 +25,7 @@ Repository = "https://github.com/Woyken/py-electrolux-ocp.git"
 Changelog = "https://github.com/Woyken/py-electrolux-ocp/releases/"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.13"
 aiohttp = "^3.9.3"
 aiohttp-retry = "^2.8.3"
 
