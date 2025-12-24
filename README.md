@@ -1,9 +1,20 @@
 # py-electrolux-ocp
 
-## New details on API
+## ARCHIVED
 
-Looks like electrolux finally opened their api, will be rewriting this wrapper to reference their api directly (remove reverse engineered api)
-<https://developer.electrolux.one/documentation/reference>
+This repository has been archived and is no longer maintained.
+
+Electrolux has released an official SDK for their API. 
+Please use the official repository instead:
+
+https://github.com/electrolux-oss/electrolux-group-developer-sdk
+
+Official API Documentation:
+https://developer.electrolux.one/documentation/reference
+
+This project was created as a reverse-engineered wrapper before the official API was available. Now that Electrolux provides official support and documentation, this repository is no longer necessary.
+
+Thank you to everyone who used and contributed to this project!
 
 ## What is this
 
@@ -37,8 +48,4 @@ async def main():
 
 asyncio.run(main())
 ```
-
-## TODOs
-
-- Better error messages on known scenarios (login failed)
 
